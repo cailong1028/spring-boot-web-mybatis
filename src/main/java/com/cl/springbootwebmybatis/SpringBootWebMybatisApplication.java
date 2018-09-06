@@ -5,6 +5,7 @@ import com.cl.springbootwebmybatis.primary.ComponentInterface;
 import com.cl.springbootwebmybatis.bean.UserBean;
 import com.cl.springbootwebmybatis.mapper.TTestMapper;
 import com.cl.springbootwebmybatis.mapper.UserMapper;
+import com.cl.springbootwebmybatis.primary.reflect.MethodParams;
 import com.cl.springbootwebmybatis.primary.pattern.Pattern1;
 import com.cl.springbootwebmybatis.primary.pattern.Pattern2;
 import com.cl.springbootwebmybatis.primary.pattern.PatternInterface;
@@ -43,6 +44,9 @@ public class SpringBootWebMybatisApplication implements CommandLineRunner{
     @Autowired
     PatternInterface<?> pattern2;
 
+    @Autowired
+    MethodParams method;
+
 	public SpringBootWebMybatisApplication(UserMapper userMapper, TTestMapper tTestMapper) {
 		this.userMapper = userMapper;
 		this.tTestMapper = tTestMapper;
@@ -68,7 +72,9 @@ public class SpringBootWebMybatisApplication implements CommandLineRunner{
 
         ((Pattern1)pattern1).set(1);
         ((Pattern2)pattern2).set("s");
-        System.out.println(pattern1.get());
-        System.out.println(pattern2.get());
+        System.out.println("范型 -- 整形 -->" + pattern1.get());
+        System.out.println("范型 -- 字符串 -->" + pattern2.get());
+
+        System.out.println(method.method());
 	}
 }
