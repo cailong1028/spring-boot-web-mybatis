@@ -28,7 +28,7 @@ public class RPCClient {
 
     public RPCClient call(String arg) throws IOException {
         final String correlationId = UUID.randomUUID().toString();
-        System.out.println(correlationId);
+//        System.out.println(correlationId);
 
         AMQP.BasicProperties properties = new AMQP.BasicProperties().builder().replyTo(this.replyTo).correlationId(correlationId).build();
         this.channel.basicPublish("", RPCServer.TEST_RPC_CHANNEL, properties, arg.getBytes("UTF-8"));
