@@ -11,7 +11,7 @@ public class TestService {
     private TestMapper testMapper;
 
     public void addTest(){
-        testMapper
+        //testMapper
     }
 
 }
