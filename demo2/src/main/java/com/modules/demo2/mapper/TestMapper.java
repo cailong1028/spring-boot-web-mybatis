@@ -6,11 +6,13 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 @Mapper
 public interface TestMapper {
 
     @Select("select * from test where name = #{name}")
-    Test getTestByName(@Param("name") String name);
+    List<Test> getTestByName(@Param("name") String name);
 
     @Insert("insert into test() values()")
     Void addTest(Test test);

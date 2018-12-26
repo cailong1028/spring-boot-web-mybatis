@@ -57,8 +57,32 @@ public class StreamTest {
         System.out.println("execute me last");
 
 
+        //比较对象日期最大值
+        TimeObj t1 = new TimeObj();
+        TimeObj t2 = new TimeObj();
+
+        t1.time = new Date();
+        Calendar calendarNow = Calendar.getInstance();
+        calendarNow.setTime(new Date());
+        calendarNow.add(Calendar.MONTH, 3);
+        Date date2 = calendarNow.getTime();
+        t2.time = date2;
+
+
+        TimeObj obj = Stream.of(t1, t2).max(Comparator.comparing((one) -> one.time)).get();
+        System.out.println(obj.time);
+
+        //空list测试
+        List<TimeObj> timeObjList = new ArrayList<>();
+        timeObjList.add(t1);
+        TimeObj t3 = timeObjList.stream().max(Comparator.comparing(one -> one.time)).get();
+        System.out.println(t3.time);
     }
 
+}
+
+class TimeObj{
+    public Date time;
 }
 
 class Student{

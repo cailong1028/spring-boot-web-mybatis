@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.modules.demo2.dao.TestDao">
+
+    <sql id="testColumns">
+		id,
+		name,
+		email
+	</sql>
+
+    <select id="get" resultType="com.modules.demo2.entity.TestEntity">
+        SELECT
+        <include refid="testColumns"/>
+        FROM test
+        WHERE id = #{id}
+    </select>
+
+    <select id="findList" resultType="com.modules.demo2.entity.TestEntity">
+        SELECT
+        <include refid="testColumns"/>
+        FROM test
+        <where>
+            <if test="id != null">
+				AND id = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="findAllList" resultType="com.modules.demo2.entity.TestEntity">
+        SELECT
+        <include refid="testColumns"/>
+        FROM test
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO test(
+			id,
+			name,
+			email
+		) VALUES (
+			#{id},
+			#{name},
+			#{email}
+		)
+	</insert>
+
+    <update id="update">
+		UPDATE test SET
+			name=#{name},
+			email=#{email}
+		WHERE id = #{id}
+	</update>
+
+</mapper>
