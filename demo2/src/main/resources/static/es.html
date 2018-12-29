@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>es page</title>
+</head>
+<body>
+    i am es page!
+
+    <script>
+        const es = new EventSource('http://localhost:38083/es/getEs');
+        function listener(event) {
+            console.log(event.type, event.data, event.url);
+        }
+        // es.onerror(listener);
+        // es.onopen(listener);
+        // es.onmessage(listener);
+        es.addEventListener("error", listener);
+        es.addEventListener("message", listener);
+        es.addEventListener("open", listener);
+
+        fetch('http://localhost:38083/es/index', {method: 'get'}).then(data => data.json()).then(data => {
+            console.log(data);
+        }).catch(e => {
+            console.error(e);
+        });
+    </script>
+</body>
+</html>
