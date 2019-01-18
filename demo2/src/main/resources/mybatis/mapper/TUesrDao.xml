@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.modules.demo2.dao.TUserDao">
+
+    <sql id="testColumns">
+		id,
+		user_name as userName,
+		password
+	</sql>
+
+    <select id="get" resultType="com.modules.demo2.entity.TUserEntity">
+        SELECT
+        <include refid="testColumns"/>
+        FROM t_user
+        WHERE id = #{id}
+    </select>
+
+    <select id="findList" resultType="com.modules.demo2.entity.TUserEntity">
+        SELECT
+        <include refid="testColumns"/>
+        FROM test
+        <where>
+            <if test="id != null">
+				AND id = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="findAllList" resultType="com.modules.demo2.entity.TUserEntity">
+        SELECT
+        <include refid="testColumns"/>
+        FROM t_user
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO test(
+			id,
+			name,
+			email
+		) VALUES (
+			#{id},
+			#{name},
+			#{email}
+		)
+	</insert>
+
+    <update id="update">
+		UPDATE test SET
+			name=#{name},
+			email=#{email}
+		WHERE id = #{id}
+	</update>
+
+    <select id="getByUsername" resultType="com.modules.demo2.entity.TUserEntity">
+        select
+        <include refid="testColumns"></include>
+        from t_user
+        where user_name = #{username}
+    </select>
+
+</mapper>
