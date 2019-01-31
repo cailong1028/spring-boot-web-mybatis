@@ -19,6 +19,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler;
 
 import java.util.Arrays;
 
@@ -27,7 +28,7 @@ import java.util.Arrays;
 @Import({UserBean2NoInIOC.class, MyConfig.class})
 public class Demo2Application {
 
-    private static final Logger logger = LoggerFactory.getLogger(Demo2Application.class);
+    private static final Logger log = LoggerFactory.getLogger(Demo2Application.class);
 
     @Autowired
     private ApplicationContext appCtx2;
@@ -45,25 +46,28 @@ public class Demo2Application {
         ConfigurableApplicationContext context = SpringApplication.run(Demo2Application.class, args);
         UserBean2 userBean2 = context.getBean(UserBean2.class);
         userBean2.setAge(11);
-        logger.info("userBean2 age in main {}", userBean2.getAge());
+        log.info("userBean2 age in main {}", userBean2.getAge());
         UserBean2NoInIOC userBean2NoInIOC = context.getBean(UserBean2NoInIOC.class);
         userBean2NoInIOC.setName("userBean2NoInIOC~name");
-        logger.info("userBean2NoInIOC name in main {}", userBean2NoInIOC.getName());
+        log.info("userBean2NoInIOC name in main {}", userBean2NoInIOC.getName());
         Dog dog = context.getBean(Dog.class);
         dog.setName("my dog");
-        logger.info("{}", dog.getName());
-        logger.info("app started");
+        log.info("{}", dog.getName());
+        DefaultServletHttpRequestHandler defaultServletHttpRequestHandler = context.getBean("defaultServlet", DefaultServletHttpRequestHandler.class);
+
+
+        log.info("app started");
     }
 
     @Bean
     public CommandLineRunner runner(ApplicationContext appCtx){
         return args -> {
 
-            logger.info("inspect beans provided by spring boot:");
+            log.info("inspect beans provided by spring boot:");
             String[] beanNames = appCtx.getBeanDefinitionNames();
             Arrays.sort(beanNames);
             for(String oneBeanName:beanNames){
-                logger.info("one bean --> {}", oneBeanName);
+                log.info("one bean --> {}", oneBeanName);
             }
             mainRun();
         };
@@ -71,22 +75,22 @@ public class Demo2Application {
 
     private void mainRun(){
         userBean1.setName("AAAAAAA");
-        logger.info("bean userBean1 getName {}", userBean1.getName());
+        log.info("bean userBean1 getName {}", userBean1.getName());
 
         userBean2.setAge(1);
-        logger.info("bean userBean2 getAge {}", userBean2.getAge());
+        log.info("bean userBean2 getAge {}", userBean2.getAge());
 
         UserBean1 userBean1_1 = appCtx2.getBean("userBean1", UserBean1.class);
         userBean1_1.setName("userBean1_1_name");
-        logger.info("appCtx getBean name is {}", userBean1_1.getName());
+        log.info("appCtx getBean name is {}", userBean1_1.getName());
 
         UserBean1 userBean1_1_2 = appCtx2.getBean(UserBean1.class);
         userBean1_1_2.setName("userBean1_1_name_2");
-        logger.info("appCtx getBean name is {}", userBean1_1_2.getName());
+        log.info("appCtx getBean name is {}", userBean1_1_2.getName());
 
         UserBean2 userBean2_2 = applicationContextProvider.getApplicationContext().getBean(UserBean2.class);
         userBean2_2.setAge(22);
-        logger.info("userBean2_2 age is {}", userBean2_2.getAge());
+        log.info("userBean2_2 age is {}", userBean2_2.getAge());
 
     }
 }
