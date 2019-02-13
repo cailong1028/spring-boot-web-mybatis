@@ -8,11 +8,10 @@
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-
-	<groupId>com.cl</groupId>
-	<artifactId>eureka-server</artifactId>
+	<groupId>com.modules</groupId>
+	<artifactId>eureka-client-2</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>eureka-server</name>
+	<name>eureka-client-2</name>
 	<description>Demo project for Spring Boot</description>
 
 	<dependencies>
@@ -21,5 +20,4 @@
 			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
 		</dependency>
 	</dependencies>
-
 </project>
