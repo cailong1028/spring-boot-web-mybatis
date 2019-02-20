@@ -8,11 +8,12 @@ import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/user")
@@ -41,4 +42,19 @@ public class TUserController {
         return tUserService.getByUsername(request.getParameter("username"));
     }
 
+    @RequestMapping(value = "/batchInsert", method = RequestMethod.POST)
+    public Object batchInsert(@RequestParam("names") String names, @RequestParam("passwds") String passwds){
+
+        String[] nameArr = names.split(",");
+        String[] passwdArr = passwds.split(",");
+        List<TUserEntity> tUserList = new ArrayList<>();
+        for(int i = 0; i < nameArr.length; i++){
+            TUserEntity tUserEntity = new TUserEntity();
+            tUserEntity.setUserName(nameArr[i]);
+            tUserEntity.setPassword(passwdArr[i]);
+            tUserList.add(tUserEntity);
+        }
+        tUserService.batchInsert(tUserList);
+        return 200;
+    }
 }

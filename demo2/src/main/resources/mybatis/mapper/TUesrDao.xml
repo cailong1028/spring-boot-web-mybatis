@@ -44,6 +44,20 @@
 		)
 	</insert>
 
+    <insert id="batchInsert" parameterType="java.util.List">
+        insert into t_user(
+            user_name,
+            password
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+              #{item.userName},
+              #{item.password}
+            )
+        </foreach>
+    </insert>
+
     <update id="update">
 		UPDATE test SET
 			name=#{name},
