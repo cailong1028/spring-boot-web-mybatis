@@ -13,6 +13,18 @@
     $(() => {
         $.ajax({
             type: 'post',
+            url: '/test/requestBodyTest',
+            //contentType:'application/json;charset=UTF-8', //当application/json时，spring mvc 不能以对象键值对的形式获取参数
+            data: {
+                name: 'xxx2',
+                time: new Date()
+            },
+            success: (data) => {
+                console.log(data);
+            }
+        });
+        $.ajax({
+            type: 'post',
             url: '/test/requestBodyTest2',
             contentType:'application/json;charset=UTF-8',
             data: JSON.stringify({

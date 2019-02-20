@@ -45,11 +45,8 @@ public class TestController {
     }
 
     @RequestMapping("/requestBodyTest")
-    @ResponseBody
-    User getUsers(@RequestParam(value = "name", required = false) String name,
+    User getUsers(@RequestParam(value = "name") String name,
                     @RequestParam(value = "time", required = false) Date time){
-        //前端请求的格式
-        // time: Thu Aug 13 2015 19:45:20 GMT+0800, name: "xxx"
         User user = new User();
         user.setName(name);
         user.setTime(time);
@@ -57,7 +54,6 @@ public class TestController {
     }
 
     @RequestMapping("/requestBodyTest2")
-    @ResponseBody //返回个前端的是一个JSON对象
     List<User> getUsers(@RequestBody User user){
         //前端请求的格式是一个JSON对象的字符串，如下：'{"name":"zx", "time":"2019-02-14T02:53:00.867Z"}'
         List<User> users = new ArrayList<>();
@@ -70,7 +66,6 @@ public class TestController {
     }
 
     @RequestMapping("/requestBodyTest3")
-    @ResponseBody
     User getUser(HttpServletRequest request){
         User user = new User();
         user.setName(request.getParameter("name"));
@@ -78,7 +73,6 @@ public class TestController {
     }
 
     @RequestMapping("/requestBodyTest4/{name}")
-    @ResponseBody
     User getUser(@PathVariable("name") String name, HttpServletRequest request){
         User user = new User();
         user.setName(name);
@@ -86,7 +80,6 @@ public class TestController {
     }
 
     @RequestMapping("/ajax/data/test")
-    @ResponseBody
     MultiEntity ajaxData(@RequestBody UserFiles body, HttpServletRequest request){
         UserFiles userFiles = new UserFiles();
         userFiles.setName(body.getName());
