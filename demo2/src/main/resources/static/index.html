@@ -58,6 +58,18 @@
                 console.log(data);
             }
         });
+
+        $.ajax({
+            type: 'post',
+            url: '/producesConsumes/produces',
+            contentType: 'application/json',
+            data: {
+                name: 'xxx2',
+            },
+            success: (data) => {
+                console.log(data);
+            }
+        });
     });
 </script>
 </html>
