@@ -43,7 +43,7 @@ public class TUserController {
     }
 
     @RequestMapping(value = "/batchInsert", method = RequestMethod.POST)
-    public Object batchInsert(@RequestParam("names") String names, @RequestParam("passwds") String passwds){
+    public int batchInsert(@RequestParam("names") String names, @RequestParam("passwds") String passwds){
 
         String[] nameArr = names.split(",");
         String[] passwdArr = passwds.split(",");
@@ -54,7 +54,7 @@ public class TUserController {
             tUserEntity.setPassword(passwdArr[i]);
             tUserList.add(tUserEntity);
         }
-        tUserService.batchInsert(tUserList);
-        return 200;
+        int insertCount = tUserService.batchInsert(tUserList);
+        return insertCount;
     }
 }

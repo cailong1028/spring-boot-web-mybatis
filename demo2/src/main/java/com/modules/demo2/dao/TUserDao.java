@@ -11,5 +11,5 @@ public interface TUserDao extends CrudDao<TUserEntity> {
 
     TUserEntity getByUsername(@Param(value = "username") String username);
 
-    void batchInsert(List<TUserEntity> tUserList);
+    int batchInsert(List<TUserEntity> tUserList);
 }

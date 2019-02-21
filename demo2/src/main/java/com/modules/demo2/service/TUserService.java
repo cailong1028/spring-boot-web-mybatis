@@ -17,7 +17,7 @@ public class TUserService {
         return tUserDao.getByUsername(username);
     }
 
-    public void batchInsert(List<TUserEntity> tUserList){
-        tUserDao.batchInsert(tUserList);
+    public int batchInsert(List<TUserEntity> tUserList){
+        return tUserDao.batchInsert(tUserList);
     }
 }
