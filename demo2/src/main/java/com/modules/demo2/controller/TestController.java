@@ -1,5 +1,6 @@
 package com.modules.demo2.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.modules.demo2.dao.TestDao;
 import com.modules.demo2.entity.TUserEntity;
 import com.modules.demo2.entity.TestEntity;
@@ -20,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("test")
+@RequestMapping("/test")
 public class TestController {
 
     @Autowired
@@ -89,6 +90,25 @@ public class TestController {
         //System.out.println(multiEntity.getFiles().get(0).getName());
         //MultiValueMap
         return multiEntity;
+    }
+
+    @RequestMapping("/fastJsonTest")
+    List<UserFiles> fastJsonTest(@RequestParam("userListString") String userListString){
+
+        List<UserFiles> userFilesList1 = JSON.parseArray(userListString, UserFiles.class);
+
+        List<UserFiles> userFilesList2 = new ArrayList<>();
+        UserFiles userFiles2 = new UserFiles();
+        List<File> files2 = new ArrayList<>();
+        File file = new File();
+        file.setName("fileFromServer");
+        files2.add(file);
+        userFiles2.setFiles(files2);
+        userFilesList2.add(userFiles2);
+
+        userFilesList1.addAll(userFilesList2);
+
+        return userFilesList1;
     }
 }
 
