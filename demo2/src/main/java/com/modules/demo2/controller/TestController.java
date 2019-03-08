@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -109,6 +110,46 @@ public class TestController {
         userFilesList1.addAll(userFilesList2);
 
         return userFilesList1;
+    }
+
+    @RequestMapping("/session")
+    MySession session1(HttpServletRequest request, HttpServletResponse response){
+        HttpSession session = request.getSession();
+        session.setAttribute("name", "cl");
+        MySession mySession = new MySession();
+        mySession.setName("cl");
+        mySession.setId(session.getId());
+        return mySession;
+    }
+
+    @RequestMapping("/session2")
+    MySession session2(HttpServletRequest request, HttpServletResponse response){
+        HttpSession session = request.getSession();
+        MySession mySession = new MySession();
+        mySession.setId(session.getId());
+        mySession.setName((String)session.getAttribute("name"));
+        return mySession;
+    }
+}
+
+class MySession{
+    String name;
+    String id;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
 
