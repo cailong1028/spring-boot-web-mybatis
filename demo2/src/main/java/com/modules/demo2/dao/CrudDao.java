@@ -9,7 +9,7 @@ public interface CrudDao<T> extends BaseDao{
     public T get(T entity);
     public List<T> findList(T entity);
     public int insert(T entity);
-    public int udpate(T entity);
+    public int update(T entity);
     public int delete(String id);
     public int delete(T entity);
 }
