@@ -23,6 +23,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <com.alibaba.fastjson.version>1.2.41</com.alibaba.fastjson.version>
+        <jsoup.version>1.11.2</jsoup.version>
     </properties>
 
     <dependencies>
@@ -101,6 +102,16 @@
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
             <version>3.4.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xuxueli</groupId>
+            <artifactId>xxl-crawler</artifactId>
+            <version>1.2.2</version>
         </dependency>
     </dependencies>
 
