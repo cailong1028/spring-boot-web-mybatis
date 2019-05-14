@@ -9,6 +9,7 @@
 	<modules>
 		<module>config-parent</module>
         <module>encodeTest</module>
+        <module>prime</module>
     </modules>
 	<packaging>pom</packaging>
 
