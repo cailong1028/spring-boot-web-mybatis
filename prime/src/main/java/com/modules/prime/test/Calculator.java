@@ -1,5 +1,6 @@
 package com.modules.prime.test;
 
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -54,6 +55,13 @@ public class Calculator{
             }
         });
         executorService.shutdown();
+    }
+
+    private void t2(){
+        HashMap<String, String> m1 = new HashMap<>();
+        m1.put("a", "A");
+        m1.put("b", "B");
+
     }
 
 }

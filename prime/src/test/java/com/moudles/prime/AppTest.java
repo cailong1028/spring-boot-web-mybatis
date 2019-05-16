@@ -1,8 +1,10 @@
 package com.moudles.prime;
 
 
+import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.util.DateUtil;
-import com.modules.prime.util.Log;
+import com.modules.prime.log.Logger;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.net.URL;
@@ -11,6 +13,12 @@ import java.util.LinkedList;
 import static org.junit.Assert.assertEquals;
 
 public class AppTest {
+    Logger logger = LoggerFactory.getLogger(AppTest.class);
+
+    @Before
+    public void init(){
+        //Logger logger = LoggerFactory.getLogger(AppTest.class);
+    }
 
     @Test
     public void dateUtil(){
@@ -35,7 +43,8 @@ public class AppTest {
             System.out.println(one);
         }
         assertEquals(list.poll(), "c");
-        Log.msg("aaa");
+
+        logger.msg("aaa");
     }
 
     //TODO 多线程log测试
