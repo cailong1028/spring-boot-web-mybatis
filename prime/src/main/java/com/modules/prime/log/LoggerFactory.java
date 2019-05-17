@@ -1,17 +1,46 @@
 package com.modules.prime.log;
 
-import java.io.OutputStreamWriter;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
+import sun.rmi.runtime.Log;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.util.HashMap;
+import java.util.Properties;
 
 public class LoggerFactory {
 
-    private ConcurrentMap<String, Logger> loggerMap = new ConcurrentHashMap<>();
-    private OutputStreamWriter writer = new OutputStreamWriter(System.out);
+    private HashMap<String, Logger> loggerMap = new HashMap<>();
+    private String writer;
+    private String fileEncoding = "utf-8";
     private static LoggerFactory instance;
 
+
     private LoggerFactory(){
+        InputStream is = LoggerFactory.class.getClassLoader().getResourceAsStream("application.properties");
+        try{
+            if(System.getProperty("file.encoding") != null){
+                fileEncoding = System.getProperty("file.encoding");
+            }
+            if(is != null){
+                Properties properties = new Properties();
+                properties.load(is);
+                if(properties.getProperty("file.encode") != null){
+                    fileEncoding = properties.getProperty("file.encode");
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }finally {
+            if(is != null){
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
     }
 
@@ -37,24 +66,29 @@ public class LoggerFactory {
         if(logger != null){
             return logger;
         }else{
-            logger = loggerFactory.loggerMap.putIfAbsent(clazz.getName(), new Logger(className, loggerFactory.writer));
+            logger = new Logger(className, loggerFactory.writer, loggerFactory.fileEncoding);
+            //插入元素 与原有put方法不同的是，putIfAbsent方法中如果插入的key相同，则不替换原有的value值
+            loggerFactory.loggerMap.putIfAbsent(clazz.getName(), logger);
         }
         return logger;
     }
 
-    public static void setWriter(OutputStreamWriter writer){
-        LoggerFactory loggerFactory = getInstance();
-        loggerFactory.writer = writer;
+    public static void setWriter(String filePath){
+        setWriter(new File(filePath));
     }
 
-    public static void main(String[] args) {
-        Logger logger = LoggerFactory.getLogger(LoggerFactory.class);
-        logger.msg("aaa");
-        Executors.newFixedThreadPool(1).execute(new Runnable() {
-            @Override
-            public void run() {
-                logger.msg("ccc");
+    public static void setWriter(File file){
+        if(!file.exists()){
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        });
+        }
+        getInstance().writer = file.getAbsolutePath();
+    }
+
+    public static void main(String[] args) throws IOException {
+
     }
 }

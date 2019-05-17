@@ -11,6 +11,23 @@
     <groupId>com.modules</groupId>
     <artifactId>prime</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <profiles>
+        <profile>
+            <id>develop</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <file.encode>UTF-8</file.encode>
+            </properties>
+        </profile>
+        <profile>
+            <id>production</id>
+            <properties>
+                <file.encode>UTF-8</file.encode>
+            </properties>
+        </profile>
+    </profiles>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -30,6 +47,7 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
             <resource>
                 <directory>src/test/resources</directory>
