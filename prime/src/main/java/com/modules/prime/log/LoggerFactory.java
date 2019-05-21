@@ -1,10 +1,6 @@
 package com.modules.prime.log;
 
-import sun.rmi.runtime.Log;
-
 import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -15,7 +11,6 @@ public class LoggerFactory {
     private String fileEncoding = "utf-8";
     private static LoggerFactory instance;
 
-
     private LoggerFactory(){
         InputStream is = LoggerFactory.class.getClassLoader().getResourceAsStream("application.properties");
         try{
@@ -25,13 +20,10 @@ public class LoggerFactory {
             if(is != null){
                 Properties properties = new Properties();
                 properties.load(is);
-                if(properties.getProperty("file.encode") != null){
-                    fileEncoding = properties.getProperty("file.encode");
-                }
+                fileEncoding = properties.getProperty("file.encode");
             }
         }catch (Exception e){
             e.printStackTrace();
-            System.exit(1);
         }finally {
             if(is != null){
                 try {
@@ -41,7 +33,6 @@ public class LoggerFactory {
                 }
             }
         }
-
     }
 
     public static LoggerFactory getInstance(){

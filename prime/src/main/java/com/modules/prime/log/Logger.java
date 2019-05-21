@@ -29,6 +29,8 @@ public class Logger {
     private LinkedList<String> messageList = new LinkedList<>();
     private String className;
     private OutputStream defaultOutputStream = System.out;
+    //RuntimeMXBean Java虚拟机的运行时系统的管理接口
+    // MemoryMXBean Java虚拟机内存系统的管理接口
     String name = ManagementFactory.getRuntimeMXBean().getName();
     String pid = name.split("@")[0];
     enum MessageType {
@@ -119,7 +121,11 @@ public class Logger {
         print(MessageType.ERROR.value, 0, info, args);
     }
     public void error(Exception exp, Object... args){
-        print(MessageType.ERROR.value, 0, exp.getMessage(), args);
+        print(MessageType.ERROR.value, 0, exp.getClass().getName()+": "+exp.getMessage(), args);
+        StackTraceElement[] stes = exp.getStackTrace();
+        for(StackTraceElement oneSte:stes){
+            print(MessageType.ERROR.value, 1, ">> "+oneSte.toString(), args);
+        }
     }
     public void error(int depth, String info, Object... args){
         print(MessageType.ERROR.value, depth, info, args);

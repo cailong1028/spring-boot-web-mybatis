@@ -2,18 +2,25 @@ package com.moudles.prime;
 
 
 import com.modules.prime.log.LoggerFactory;
+import com.modules.prime.sql.mysql.PoolManager;
 import com.modules.prime.util.DateUtil;
 import com.modules.prime.log.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import sun.rmi.runtime.Log;
 
+import javax.xml.transform.Result;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class AppTest {
     Logger logger = LoggerFactory.getLogger(AppTest.class);
@@ -43,7 +50,6 @@ public class AppTest {
         list.push("b");
         list.push("c");
         assertEquals(list.poll(), "c");
-
         logger.info("aaa");
     }
 
@@ -103,5 +109,20 @@ public class AppTest {
         System.out.print(String.format("[%s] ", DateUtil.getFormatTime("yyyy-MM-dd HH:mm:ss", System.currentTimeMillis())));
         System.out.print(sb);
         System.out.println(String.format(info, args));
+    }
+
+    @Test
+    public void PoolManagerTest(){
+        try {
+            Connection conn = PoolManager.getInstance().getConnection();
+            ResultSet rs = conn.createStatement().executeQuery("select * from test;");
+            assertTrue(true);
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            assertTrue(false);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
     }
 }
