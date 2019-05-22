@@ -1,9 +1,9 @@
 package com.moudles.prime;
 
 
+import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.BO;
-import com.modules.prime.sql.mysql.PoolManager;
 import com.modules.prime.util.DateUtil;
 import com.modules.prime.log.Logger;
 import org.json.JSONArray;
@@ -12,15 +12,10 @@ import org.junit.Before;
 import org.junit.Test;
 import sun.rmi.runtime.Log;
 
-import javax.xml.transform.Result;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.LinkedList;
-import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
