@@ -73,7 +73,6 @@ public class Logger implements Runnable{
                         outputStreamWriter = new OutputStreamWriter(defaultOutputStream, fileEncoding);
                         bufferedWriter = new BufferedWriter(outputStreamWriter);
                     }
-                    System.out.println("msgList size "+messageList.size());
                     while (messageList.size() > 0) {
                         bufferedWriter.write(messageList.poll()+"\n");
                     }

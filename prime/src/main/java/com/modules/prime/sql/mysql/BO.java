@@ -62,7 +62,6 @@ public class BO {
                 }
             }
             if(poolConnection != null){
-                logger.info("before release %s", poolConnection.getId());
                 poolManager.releasePoolConnection(poolConnection);
             }
         }
@@ -94,7 +93,7 @@ public class BO {
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
-        for(int i = 0; i < 2; i++){
+        for(int i = 0; i < 100; i++){
             final int b = i;
             new Thread(new Runnable() {
                 @Override
