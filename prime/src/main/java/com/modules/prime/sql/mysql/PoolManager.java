@@ -19,17 +19,74 @@ public class PoolManager {
 
     private Map<String, PoolConnection> connectionPool = new HashMap<>();
 
-    private int maxSize = 10;
+    private int maxSize = 1;
     private int mixSize = 2;
-    private int timeout = 10000;
+    private int timeout = 5000;
+    private int maxFreeTime = 15000;
+    private int scanPeriod = 3000;
+
+    private volatile boolean monitorRunning = false;
+    private volatile int monitorCnt = 0;
 
     private PoolManager(){
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
+            startMonitor();
         } catch (ClassNotFoundException e) {
             logger.error(e);
             e.printStackTrace();
         }
+    }
+
+    private void startMonitor(){
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                logger.info("monitor running");
+                while(true){
+                    try {
+                        synchronized (connectionPool) {
+                            if (connectionPool.size() > 0) {
+                                logger.info("now connectionPool.size = " + connectionPool.size());
+                                long now = System.currentTimeMillis();
+                                LinkedList<PoolConnection> freeList = new LinkedList<>();
+                                for (String oneKey : connectionPool.keySet()) {
+                                    PoolConnection poolConnection = connectionPool.get(oneKey);
+                                    if (!poolConnection.working && now - poolConnection.getTime() > maxFreeTime) {
+                                        freeList.push(poolConnection);
+                                    }
+                                }
+                                logger.info("will remove freeList.size = " + freeList.size());
+                                if (freeList.size() > 0) {
+                                    removePoolConnection(freeList);
+                                }
+                            }
+                        }
+                        //一定不能放在synchronized快中，否则即便notify了，块内容没有执行完毕，connectionPool锁就不释放
+                        Thread.currentThread().sleep(scanPeriod);
+                    } catch (InterruptedException e) {
+                        monitorRunning = false;
+                        try {
+                            Thread.currentThread().join();
+                            monitorCnt ++;
+                            startMonitor();
+                        } catch (InterruptedException e1) {
+                            e1.printStackTrace();
+                        }
+                        logger.error(e);
+                        //e.printStackTrace();
+                    }
+                }
+            }
+        };
+        //移除超时空闲
+        Thread monitor = new Thread(runnable);
+        //跟随主线程结束，不控制进程
+        monitor.setDaemon(true);
+        monitor.setName("prime PoolManager monitor-" + monitorCnt);
+
+        monitor.start();
+        //monitorRunning = true;
     }
 
     public static PoolManager getInstance(){
@@ -44,55 +101,89 @@ public class PoolManager {
         }
     }
 
-    public PoolConnection getConnection() throws TimeoutException, SQLException {
+    public PoolConnection getPoolConnection() throws TimeoutException, SQLException {
         PoolConnection poolConn = null;
         long begin = System.currentTimeMillis();
-        synchronized (connectionPool){
-            while(poolConn == null){
-                if(System.currentTimeMillis() - begin > timeout){
-                    logger.error("time out when getConnection");
-                    throw new TimeoutException();
-                }
-                poolConn = freePool.poll();
+        while(poolConn == null){
+            if(System.currentTimeMillis() - begin > timeout){
+                logger.error("time out when get PoolConnection");
+                throw new TimeoutException();
+            }
+            //同步放在getFreeConnection之后
+            synchronized (connectionPool) {
+                poolConn = getFreeConnection();
                 if(poolConn != null){
                     break;
                 }
-                if(freePool.size() + workingPool.size() < maxSize){
+                if (connectionPool.size() < maxSize) {
                     try {
                         poolConn = createConnection();
-                    }catch (SQLException e){
+                        connectionPool.put(poolConn.getId(), poolConn);
+                    } catch (SQLException e) {
                         logger.error(e);
                         throw e;
                     }
-
-                    if(poolConn != null){
+                    if (poolConn != null) {
                         break;
                     }
                     try {
                         //尝试重新获取连接
-                        wait(5000);
+                        logger.warn("i will wait");
+                        connectionPool.wait(timeout);
                     } catch (InterruptedException e) {
                         logger.error(e);
                         e.printStackTrace();
                     }
                 }
+                poolConn.setWorking(true);
             }
-            workingPool.push(poolConn);
-            return poolConn;
         }
+        Map<String, Integer> state = state();
+        logger.info("working %d free %d", state.get("working"), state.get("free"));
+        return poolConn;
     }
 
     private PoolConnection getFreeConnection(){
         if(connectionPool.keySet().size() < 1){
             return null;
         }
-        Set<String> keys = new
-        while()
+        Set<String> keys = connectionPool.keySet();
+        for(String oneKey:keys){
+            if(!connectionPool.get(oneKey).working){
+                return connectionPool.get(oneKey);
+            }
+        }
+        return null;
     }
 
-    synchronized boolean releaseConnection(PoolConnection poolConn){
+    boolean releasePoolConnection(PoolConnection poolConnection){
         //workingPool.
+        if(poolConnection != null){
+            poolConnection.setWorking(false);
+            logger.info("release one %s", poolConnection.getId());
+            //connectionPool.notify();
+        }
+
         return true;
+    }
+
+    void removePoolConnection(LinkedList<PoolConnection> list){
+        synchronized (connectionPool){
+            PoolConnection poolConnection = list.pop();
+            while( poolConnection != null){
+                Connection connection = poolConnection.getConnection();
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    connection = null;
+                    logger.error(e);
+                    //e.printStackTrace();
+                }finally {
+                    connectionPool.remove(poolConnection.getId());
+                }
+            }
+            connectionPool.notify();
+        }
     }
 
     private PoolConnection createConnection() throws SQLException {
@@ -107,6 +198,21 @@ public class PoolManager {
         return new PoolConnection(id, System.currentTimeMillis(), conn);
     }
 
+    public Map<String, Integer> state(){
+        Map<String, Integer> state = new HashMap<>();
+        int working = 0, free = 0;
+        for(String oneKey:connectionPool.keySet()){
+            if (connectionPool.get(oneKey).isWorking()) {
+                working++;
+            } else {
+                free++;
+            }
+        }
+        state.put("working", working);
+        state.put("free", free);
+        return state;
+    }
+
     class PoolConnection{
         private String id;
         private long time;
@@ -117,6 +223,26 @@ public class PoolManager {
             this.time = time;
             this.working = true;
             this.connection = connection;
+        }
+
+        public String getId(){
+            return this.id;
+        }
+
+        public Connection getConnection(){
+            return this.connection;
+        }
+
+        public long getTime(){
+            return this.time;
+        }
+
+        public boolean isWorking() {
+            return working;
+        }
+
+        public boolean setWorking(boolean b) {
+            return this.working = b;
         }
     }
 }

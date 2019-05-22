@@ -25,12 +25,10 @@ import java.util.LinkedList;
  *
  * */
 
-public class Logger implements Runnable{
+public class Logger2 {
     private LinkedList<String> messageList = new LinkedList<>();
     private String className;
     private OutputStream defaultOutputStream = System.out;
-    private String writer = null;
-    private String fileEncoding = null;
     //RuntimeMXBean Java虚拟机的运行时系统的管理接口
     // MemoryMXBean Java虚拟机内存系统的管理接口
     String name = ManagementFactory.getRuntimeMXBean().getName();
@@ -45,68 +43,67 @@ public class Logger implements Runnable{
         }
     }
 
-    protected Logger(String className, final String writer, final String fileEncoding){
+    protected Logger2(String className, final String writer, final String fileEncoding){
         this.className = className;
-        this.writer = writer;
-        this.fileEncoding = fileEncoding;
-//        thread.setDaemon(true);
-//        thread.start();
-    }
-
-    public void run() {
-        while (true) {
-            synchronized (this) {
-                try {
-                    //每次IO流程一次stream完整操作，不采用一个writer永不释放的方式
-                    FileOutputStream fileOutputStream = null;
-                    OutputStreamWriter outputStreamWriter = null;
-                    BufferedWriter bufferedWriter = null;
-                    if(writer != null && fileEncoding != null){
-                        File file = new File(writer);
-                        if(!file.exists()){
-                            file.createNewFile();
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                while (true) {
+                    synchronized (messageList) {
+                        try {
+                            //每次IO流程一次stream完整操作，不采用一个writer永不释放的方式
+                            FileOutputStream fileOutputStream = null;
+                            OutputStreamWriter outputStreamWriter = null;
+                            BufferedWriter bufferedWriter = null;
+                            if(writer != null && fileEncoding != null){
+                                File file = new File(writer);
+                                if(!file.exists()){
+                                    file.createNewFile();
+                                }
+                                fileOutputStream = new FileOutputStream(file, true);
+                                outputStreamWriter = new OutputStreamWriter(fileOutputStream, fileEncoding);
+                                bufferedWriter = new BufferedWriter(outputStreamWriter);
+                            }else{
+                                outputStreamWriter = new OutputStreamWriter(defaultOutputStream, fileEncoding);
+                                bufferedWriter = new BufferedWriter(outputStreamWriter);
+                            }
+                            System.out.println("msgList size "+messageList.size());
+                            while (messageList.size() > 0) {
+                                bufferedWriter.write(messageList.poll()+"\n");
+                            }
+                            /**
+                             * 把当前messageList的数据写完之后再flush(一次flush多个message信息)
+                             * 而不是每次write之后就flush
+                             * */
+                            if(writer != null && fileEncoding != null){
+                                if(bufferedWriter != null){
+                                    bufferedWriter.flush();
+                                    bufferedWriter.close();
+                                }
+                                if(fileOutputStream != null){
+                                    fileOutputStream.close();
+                                }
+                                if(outputStreamWriter != null){
+                                    outputStreamWriter.close();
+                                }
+                            }else{
+                                bufferedWriter.flush();
+                            }
+                            messageList.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            //加入messageList头
+                            messageList.addFirst(combineExceptionInfo(e.getMessage()));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            //加入messageList头
+                            messageList.addFirst(combineExceptionInfo(e.getMessage()));
                         }
-                        fileOutputStream = new FileOutputStream(file, true);
-                        outputStreamWriter = new OutputStreamWriter(fileOutputStream, fileEncoding);
-                        bufferedWriter = new BufferedWriter(outputStreamWriter);
-                    }else{
-                        outputStreamWriter = new OutputStreamWriter(defaultOutputStream, fileEncoding);
-                        bufferedWriter = new BufferedWriter(outputStreamWriter);
                     }
-                    System.out.println("msgList size "+messageList.size());
-                    while (messageList.size() > 0) {
-                        bufferedWriter.write(messageList.poll()+"\n");
-                    }
-                    /**
-                     * 把当前messageList的数据写完之后再flush(一次flush多个message信息)
-                     * 而不是每次write之后就flush
-                     * */
-                    if(writer != null && fileEncoding != null){
-                        if(bufferedWriter != null){
-                            bufferedWriter.flush();
-                            bufferedWriter.close();
-                        }
-                        if(fileOutputStream != null){
-                            fileOutputStream.close();
-                        }
-                        if(outputStreamWriter != null){
-                            outputStreamWriter.close();
-                        }
-                    }else{
-                        bufferedWriter.flush();
-                    }
-                    this.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    //加入messageList头
-                    messageList.addFirst(combineExceptionInfo(e.getMessage()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    //加入messageList头
-                    messageList.addFirst(combineExceptionInfo(e.getMessage()));
                 }
             }
-        }
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public void info(String info, Object... args){
@@ -141,8 +138,9 @@ public class Logger implements Runnable{
         print(MessageType.DEBUG.value, depth, info, args);
     }
 
-    public synchronized void print(String type, int depth, String info, Object... args){
+    public void print(String type, int depth, String info, Object... args){
         //将now放在sync之外测试
+        synchronized (messageList){
             /**
              * StringBuffer是非原子操作，不能放在锁(synchronized块)外部，否则输出顺序会出乱（看下面示例时间）
              * <pre>
@@ -169,7 +167,8 @@ public class Logger implements Runnable{
             }
             sb.append(String.format(info, args));
             messageList.addLast(sb.toString());
-            this.notify();
+            messageList.notify();
+        }
     }
 
     private String combineExceptionInfo(String message){

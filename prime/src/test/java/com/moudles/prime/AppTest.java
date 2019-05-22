@@ -2,9 +2,12 @@ package com.moudles.prime;
 
 
 import com.modules.prime.log.LoggerFactory;
+import com.modules.prime.sql.mysql.BO;
 import com.modules.prime.sql.mysql.PoolManager;
 import com.modules.prime.util.DateUtil;
 import com.modules.prime.log.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import sun.rmi.runtime.Log;
@@ -20,6 +23,7 @@ import java.util.LinkedList;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 public class AppTest {
@@ -112,17 +116,19 @@ public class AppTest {
     }
 
     @Test
-    public void PoolManagerTest(){
-        try {
-            Connection conn = PoolManager.getInstance().getConnection();
-            ResultSet rs = conn.createStatement().executeQuery("select * from test;");
-            assertTrue(true);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-            assertTrue(false);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            assertTrue(false);
+    public void BOTest(){
+        BO bo = new BO();
+        for(int i = 0; i < 1; i++){
+            final int b = i;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONArray ja = bo.query("select * from test where name = ?", "cl");
+                    logger.info(((JSONObject)ja.get(0)).getString("name"));
+                    assertNotEquals(ja.length(), 1);
+                }
+            }).start();
         }
+
     }
 }

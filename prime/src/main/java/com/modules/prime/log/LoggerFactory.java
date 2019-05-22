@@ -58,6 +58,9 @@ public class LoggerFactory {
             return logger;
         }else{
             logger = new Logger(className, loggerFactory.writer, loggerFactory.fileEncoding);
+            Thread logThread = new Thread(logger);
+            logThread.setDaemon(true);
+            logThread.start();
             //插入元素 与原有put方法不同的是，putIfAbsent方法中如果插入的key相同，则不替换原有的value值
             loggerFactory.loggerMap.putIfAbsent(clazz.getName(), logger);
         }
