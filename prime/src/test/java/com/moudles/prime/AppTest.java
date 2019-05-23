@@ -5,7 +5,6 @@ import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.BO;
 import com.modules.prime.util.DateUtil;
-import com.modules.prime.log.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -19,7 +18,6 @@ import java.util.LinkedList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 public class AppTest {
     Logger logger = LoggerFactory.getLogger(AppTest.class);
@@ -58,7 +56,7 @@ public class AppTest {
         long begin = System.currentTimeMillis();
         Logger logger = LoggerFactory.getLogger(LoggerFactory.class);
         Logger logger2 = LoggerFactory.getLogger(Logger.class);
-        for(int i = 0; i < 500; i++){
+        for(int i = 0; i < 10000; i++){
             final int b = i;
             new Thread(new Runnable() {
                 @Override
@@ -93,8 +91,6 @@ public class AppTest {
         assertEquals(threads, null);
     }
 
-    //TODO 多线程log测试
-
     private void println(String info, Object... args){
         this.println(0, info, args);
     }
@@ -124,6 +120,5 @@ public class AppTest {
                 }
             }).start();
         }
-
     }
 }

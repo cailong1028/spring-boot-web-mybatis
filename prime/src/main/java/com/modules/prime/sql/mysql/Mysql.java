@@ -1,5 +1,6 @@
 package com.modules.prime.sql.mysql;
 
+
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 

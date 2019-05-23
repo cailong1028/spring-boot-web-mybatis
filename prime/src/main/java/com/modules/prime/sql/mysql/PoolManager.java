@@ -2,7 +2,7 @@ package com.modules.prime.sql.mysql;
 
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
-import com.modules.prime.test.BaseX;
+import com.modules.prime.util.BaseX;
 import com.modules.prime.util.AppProperties;
 
 import java.sql.Connection;
@@ -23,10 +23,9 @@ public class PoolManager {
     private Map<String, PoolConnection> connectionPool = new HashMap<>();
 
     private int maxSize = 2;
-    private int mixSize = 2;
     private int timeout = 5000;
     private int maxFreeTime = 15000;
-    private int scanPeriod = 3000;
+    private int scanPeriod = 30000;
 
     private volatile boolean monitorRunning = false;
     private volatile int monitorCnt = 0;
@@ -45,12 +44,12 @@ public class PoolManager {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                logger.info("pool manager monitor running");
+                logger.debug("pool manager monitor running");
                 while(true){
                     try {
                         synchronized (connectionPool) {
                             if (connectionPool.size() > 0) {
-                                logger.info("monitoring now connectionPool.size = " + connectionPool.size());
+                                logger.debug("monitoring now connectionPool.size = " + connectionPool.size());
                                 long now = System.currentTimeMillis();
                                 LinkedList<PoolConnection> freeList = new LinkedList<>();
                                 for (String oneKey : connectionPool.keySet()) {
@@ -59,7 +58,7 @@ public class PoolManager {
                                         freeList.push(poolConnection);
                                     }
                                 }
-                                logger.info("monitoring will remove freeList.size = " + freeList.size());
+                                logger.debug("monitoring will remove freeList.size = " + freeList.size());
                                 if (freeList.size() > 0) {
                                     removePoolConnection(freeList);
                                 }
@@ -110,7 +109,7 @@ public class PoolManager {
         while(poolConn == null){
             if(System.currentTimeMillis() - begin > timeout){
                 Map<String, Integer> state = state();
-                logger.info("working %d free %d time out when get PoolConnection", state.get("working"), state.get("free"));
+                logger.debug("working %d free %d time out when get PoolConnection", state.get("working"), state.get("free"));
                 throw new TimeoutException();
             }
             //getFreeConnection在同步内执行
@@ -121,7 +120,6 @@ public class PoolManager {
                 }
                 if (connectionPool.size() < maxSize) {
                     try {
-                        poolConn = createConnection();
                         poolConn = createConnection();
                         connectionPool.put(poolConn.getId(), poolConn);
                     } catch (SQLException e) {
@@ -134,7 +132,7 @@ public class PoolManager {
                 }
                 try {
                     //尝试重新获取连接
-                    logger.warn("i will wait");
+                    logger.warn("waiting for get pool connection");
                     connectionPool.wait(timeout);
                 } catch (InterruptedException e) {
                     logger.error(e);
@@ -148,7 +146,7 @@ public class PoolManager {
     }
 
     private PoolConnection getFreeConnection(){
-        if(connectionPool.keySet().size() < 1){
+        if(connectionPool.size() < 1){
             return null;
         }
         Set<String> keys = connectionPool.keySet();
@@ -165,7 +163,7 @@ public class PoolManager {
         if(poolConnection != null){
             synchronized (connectionPool){
                 poolConnection.setWorking(false);
-                logger.info("release one %s", poolConnection.getId());
+                logger.debug("release one %s", poolConnection.getId());
                 connectionPool.notify();
                 return true;
             }

@@ -21,7 +21,7 @@ public class BO {
         JSONArray ja = new JSONArray();
         try {
             poolConnection = poolManager.getPoolConnection();
-            logger.info(poolConnection.getId());
+            //logger.info(poolConnection.getId());
             conn = poolConnection.getConnection();
             pst = conn.prepareStatement(sql);
             for(int k = 0; k < args.length; k++){
@@ -40,9 +40,11 @@ public class BO {
 //            Map<String, Integer> state = poolManager.state();
 //            logger.info("working %d free %d", state.get("working"), state.get("free"));
         } catch (TimeoutException e) {
-            e.printStackTrace();
+            logger.error(e);
+            //e.printStackTrace();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(e);
+            //e.printStackTrace();
         }finally {
             if(rs != null){
                 try {
@@ -92,7 +94,7 @@ public class BO {
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
-        for(int i = 0; i < 100; i++){
+        for(int i = 0; i < 500; i++){
             final int b = i;
             new Thread(new Runnable() {
                 @Override

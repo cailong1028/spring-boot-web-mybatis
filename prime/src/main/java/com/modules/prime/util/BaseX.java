@@ -1,4 +1,4 @@
-package com.modules.prime.test;
+package com.modules.prime.util;
 
 import java.io.UnsupportedEncodingException;
 

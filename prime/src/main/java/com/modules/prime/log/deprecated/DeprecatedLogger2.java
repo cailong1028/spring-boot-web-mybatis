@@ -1,4 +1,4 @@
-package com.modules.prime.log;
+package com.modules.prime.log.deprecated;
 
 import com.modules.prime.util.DateUtil;
 
@@ -25,7 +25,7 @@ import java.util.LinkedList;
  *
  * */
 
-public class Logger3 implements Runnable{
+public class DeprecatedLogger2 implements Runnable{
     private LinkedList<String> messageList = new LinkedList<>();
     private String className;
     private OutputStream defaultOutputStream = System.out;
@@ -45,7 +45,7 @@ public class Logger3 implements Runnable{
         }
     }
 
-    protected Logger3(String className, final String writer, final String fileEncoding){
+    protected DeprecatedLogger2(String className, final String writer, final String fileEncoding){
         this.className = className;
         this.writer = writer;
         this.fileEncoding = fileEncoding;
