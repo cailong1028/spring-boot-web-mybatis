@@ -44,56 +44,73 @@ public class LoggerFactory {
             Thread thread = new Thread(new Runnable() {
                 public void run() {
                     defaultLogger.debug("log thread running");
-                    while (true) {
-                        synchronized (messageList) {
-                            try {
-                                //每次IO流程一次stream完整操作，不采用一个writer永不释放的方式
-                                FileOutputStream fileOutputStream = null;
-                                OutputStreamWriter outputStreamWriter = null;
-                                BufferedWriter bufferedWriter = null;
-                                if(writer != null && fileEncoding != null){
-                                    File file = new File(writer);
-                                    if(!file.exists()){
-                                        file.createNewFile();
-                                    }
-                                    fileOutputStream = new FileOutputStream(file, true);
-                                    outputStreamWriter = new OutputStreamWriter(fileOutputStream, fileEncoding);
-                                    bufferedWriter = new BufferedWriter(outputStreamWriter);
-                                }else{
-                                    outputStreamWriter = new OutputStreamWriter(defaultOutputStream, fileEncoding);
-                                    bufferedWriter = new BufferedWriter(outputStreamWriter);
+                    Thread logHooker = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(LoggerFactory.getInstance() != null){
+                                defaultLogger.debug("when Runtime shutdown, [%d] messages will tobe log", messageList.size());
+                                if(messageList.size() > 0){
+                                    write(defaultLogger, false);
                                 }
-                                while (messageList.size() > 0) {
-                                    bufferedWriter.write(messageList.poll()+"\n");
-                                }
-                                /**
-                                 * 把当前messageList的数据写完之后再flush(一次flush多个message信息)
-                                 * 而不是每次write之后就flush
-                                 * */
-                                if(writer != null && fileEncoding != null){
-                                    if(bufferedWriter != null){
-                                        bufferedWriter.flush();
-                                        bufferedWriter.close();
-                                    }
-                                    if(fileOutputStream != null){
-                                        fileOutputStream.close();
-                                    }
-                                    if(outputStreamWriter != null){
-                                        outputStreamWriter.close();
-                                    }
-                                }else{
-                                    bufferedWriter.flush();
-                                }
-                                messageList.wait();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                                //加入messageList头
-                                messageList.addFirst(defaultLogger.combineExceptionInfo(e.getMessage()));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                //加入messageList头
-                                messageList.addFirst(defaultLogger.combineExceptionInfo(e.getMessage()));
                             }
+                        }
+                    });
+                    logHooker.setName("log-hooker");
+                    Runtime.getRuntime().addShutdownHook(logHooker);
+                    while (true) {
+                        write(defaultLogger, true);
+                    }
+                }
+
+                private void write(Logger defaultLogger, boolean willWaitWhenNoMessage){
+                    synchronized (messageList) {
+                        try {
+                            //每次IO流程一次stream完整操作，不采用一个writer永不释放的方式
+                            FileOutputStream fileOutputStream = null;
+                            OutputStreamWriter outputStreamWriter = null;
+                            BufferedWriter bufferedWriter = null;
+                            if(writer != null && fileEncoding != null){
+                                File file = new File(writer);
+                                if(!file.exists()){
+                                    file.createNewFile();
+                                }
+                                fileOutputStream = new FileOutputStream(file, true);
+                                outputStreamWriter = new OutputStreamWriter(fileOutputStream, fileEncoding);
+                                bufferedWriter = new BufferedWriter(outputStreamWriter);
+                            }else{
+                                outputStreamWriter = new OutputStreamWriter(defaultOutputStream, fileEncoding);
+                                bufferedWriter = new BufferedWriter(outputStreamWriter);
+                            }
+                            while (messageList.size() > 0) {
+                                bufferedWriter.write(messageList.poll()+"\n");
+                            }
+                            /**
+                             * 把当前messageList的数据写完之后再flush(一次flush多个message信息)
+                             * 而不是每次write之后就flush
+                             * */
+                            if(writer != null && fileEncoding != null){
+                                if(bufferedWriter != null){
+                                    bufferedWriter.flush();
+                                    bufferedWriter.close();
+                                }
+                                if(fileOutputStream != null){
+                                    fileOutputStream.close();
+                                }
+                                if(outputStreamWriter != null){
+                                    outputStreamWriter.close();
+                                }
+                            }else{
+                                bufferedWriter.flush();
+                            }
+                            if(willWaitWhenNoMessage){
+                                messageList.wait();
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            defaultLogger.error(e);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            defaultLogger.error(e);
                         }
                     }
                 }

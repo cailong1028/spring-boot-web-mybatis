@@ -2,7 +2,7 @@ package com.modules.prime.sql.mysql;
 
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
-import com.modules.prime.util.BaseX;
+import com.modules.prime.io.BaseX;
 import com.modules.prime.util.AppProperties;
 
 import java.sql.Connection;
@@ -193,9 +193,9 @@ public class PoolManager {
     private PoolConnection createConnection() throws SQLException {
         //获取properties 加解密工具
         //AppProperties appProperties = new AppProperties();
-        String url = BaseX.decode2str(AppProperties.get("mysql.url"));
-        String name = BaseX.decode2str(AppProperties.get("mysql.username"));
-        String password = BaseX.decode2str(AppProperties.get("mysql.password"));
+        String url = BaseX.decodeToStr(AppProperties.get("mysql.url"));
+        String name = BaseX.decodeToStr(AppProperties.get("mysql.username"));
+        String password = BaseX.decodeToStr(AppProperties.get("mysql.password"));
         Connection conn = null;
         conn = DriverManager.getConnection(url, name, password);
         String id = UUID.randomUUID().toString().replaceAll("-", "");

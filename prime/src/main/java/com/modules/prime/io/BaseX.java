@@ -1,8 +1,16 @@
-package com.modules.prime.util;
+package com.modules.prime.io;
 
-import java.io.UnsupportedEncodingException;
+import com.modules.prime.log.Logger;
+import com.modules.prime.log.LoggerFactory;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
+
+import java.io.*;
+import java.util.Base64;
 
 public class BaseX {
+
+    private static final Logger logger = LoggerFactory.getLogger(BaseX.class);
     private static char[] baseChar = new char[]{'9', 'j', 'S', 'K', 'z', 'c', '+', '4', 'd', 'f', 'a', 'Z', 'h', '8', 'e', 'Y', 'V', 'X', '6', 'R', 'T', 'U', 'W', 'Q', 'l', 'n', 'i', 'b', '/', 'k', 'm', 'g', 'F', 'u', 'C', '3', 'D', 'E', 'G', 'A', '1', 'B', 'y', 'x', '7', '0', '2', 'P', 't', 'v', 'q', 'p', 'r', 'M', 'H', 'o', 'N', 'w', '5', 'J', 'L', 's', 'O', 'I'};
     private static byte[] position = new byte[128];
 
@@ -17,6 +25,7 @@ public class BaseX {
     public BaseX() {
     }
 
+    //字符串加密
     public static String encode(byte[] b) {
         int code = 0;
         StringBuffer sb = new StringBuffer((b.length - 1) / 3 << 6);
@@ -42,21 +51,7 @@ public class BaseX {
 
         return sb.toString();
     }
-
-    public static String decode2str(String code) {
-        return decode2str(code, "utf-8");
-    }
-
-    public static String decode2str(String code, String characterEncode) {
-        String ret = null;
-        try {
-            ret = new String(decode(code), characterEncode);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return ret;
-    }
-
+    //字符串解密
     public static byte[] decode(String code) {
         if (code != null && !code.isEmpty()) {
             int len = code.length();
@@ -105,10 +100,80 @@ public class BaseX {
             return new byte[0];
         }
     }
+    //字符串解密明文
+    public static String decodeToStr(String code) {
+        return decodeToStr(code, "utf-8");
+    }
+    //字符串解密明文
+    public static String decodeToStr(String code, String characterEncode) {
+        String ret = null;
+        try {
+            ret = new String(decode(code), characterEncode);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
 
-    public static void main(String[] args) throws UnsupportedEncodingException {
+    //获取文件base64
+    public static String fileToBase64(String filePath){
+        String ret = null;
+        InputStream is = null;
+        byte[] data;
+        try {
+            is = new FileInputStream(filePath);
+            data = new byte[is.available()];
+            is.read(data);
+            BASE64Encoder base64Encoder = new BASE64Encoder();
+            ret = base64Encoder.encode(data);
+        } catch (FileNotFoundException e) {
+            logger.error(e);
+            //e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if(is != null){
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return ret;
+    }
+
+    //获取base64字符串字符数组
+    public static byte[] base64ToByteArray(String base64String){
+        BASE64Decoder base64Decoder = new BASE64Decoder();
+        byte[] bytes = null;
+        try {
+            bytes = base64Decoder.decodeBuffer(base64String);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bytes;
+    }
+
+    public static void main(String[] args) throws IOException {
         String code = encode("cl".getBytes());
         System.out.println(code);
         System.out.println(new String(decode(code)));
+        String ret = fileToBase64("/Users/bqj/Desktop/_xx_.png");
+        byte[] bytes = base64ToByteArray(ret);
+
+        OutputStream fs = new FileOutputStream(new File("/Users/bqj/Desktop/_xx_2.png"), true);
+        fs.write(bytes);
+        //OutputStreamWriter osw = new OutputStreamWriter(fs, "utf-8");
+        //osw.w
+        //osw.write();
+        //fs.write();
+
+        fs.flush();
+        fs.close();
+//        logger.info("aaa");
+//        int i = 1;
+//        logger.info(String.valueOf(i));
+        System.out.println(ret);
     }
 }
