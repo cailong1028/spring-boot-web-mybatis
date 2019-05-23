@@ -5,19 +5,22 @@ import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.BO;
 import com.modules.prime.util.DateUtil;
+import com.modules.prime.util.IOUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import sun.rmi.runtime.Log;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.net.URL;
 import java.util.LinkedList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 
 public class AppTest {
     Logger logger = LoggerFactory.getLogger(AppTest.class);
@@ -120,5 +123,22 @@ public class AppTest {
                 }
             }).start();
         }
+    }
+
+    @Test
+    public void IOUtilTest() throws FileNotFoundException {
+        String filePath = "c:/Users/cl/Desktop/_号.txt";
+        byte[] bytes = IOUtil.readByteArray(filePath);
+        assertNotEquals(1, bytes.length);
+        InputStream is = new FileInputStream(filePath);
+        byte[] bytes1 = IOUtil.readByteArray(is);
+        assertNotEquals(1, bytes1.length);
+
+        IOUtil.writeFile(bytes, "c:/Users/cl/Desktop/a.txt");
+        assertTrue(true);
+        IOUtil.writeFile(bytes1, "c:/Users/cl/Desktop/b.txt");
+        assertTrue(true);
+        IOUtil.writeFile("这个一个系统简介__123abc谢谢", "c:/Users/cl/Desktop/c.txt");
+        assertTrue(true);
     }
 }

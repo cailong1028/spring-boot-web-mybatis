@@ -9,26 +9,12 @@ public class IOUtil {
 
     private static transient final Logger logger = LoggerFactory.getLogger(IOUtil.class);
 
-    public static byte[] readByteArray(File file){
-
-        if(null != file && file.exists()){
-            try{
-
-            }catch (Exception e){
-
-            }
-            //FileInputStream fis = new FileInputStream(file);
-
-        }
-        return null;
-    }
-
-    public static void stringToFile(String content, String filePath){
-        stringToFile(content, filePath, false, System.getProperty("file.encoding"));
+    public static void writeFile(String content, String filePath){
+        writeFile(content, filePath, false, System.getProperty("file.encoding"));
     }
 
     //writer字符串写入文件
-    public static void stringToFile(String content, String filePath, boolean append, String charset){
+    public static void writeFile(String content, String filePath, boolean append, String charset){
         FileOutputStream fos = null;
         OutputStreamWriter osw = null;
         BufferedWriter bw = null;
@@ -71,7 +57,7 @@ public class IOUtil {
     }
 
     //stream写字节数组到文件
-    public static void byteArrayToFile(byte[] bytes, String filePath){
+    public static void writeFile(byte[] bytes, String filePath){
         try {
             FileOutputStream fos = new FileOutputStream(filePath, false);
             fos.write(bytes);
@@ -82,11 +68,61 @@ public class IOUtil {
         }
     }
 
-    //文件读取字节数组
+    //inputStream读取字节数组
+    public static byte[] readByteArray(InputStream is){
+        byte[] bytes = null;
+        byte[] buff = new byte[4096];
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int cursor;
+        try {
+            while ((cursor = is.read(buff, 0, buff.length)) != -1){
+                baos.write(buff, 0, cursor);
+            }
+            baos.flush();
+            bytes = baos.toByteArray();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                baos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if(is != null){
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return bytes;
+    }
 
-
-    //文件读取流
-
-    //文件读取字符串
+    //file读取字节数组
+    public static byte[] readByteArray(String filePath){
+        byte[] bytes = null;
+        InputStream is = null;
+        try {
+            is = new FileInputStream(filePath);
+            bytes = new byte[is.available()];
+            is.read(bytes);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if(is != null){
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return bytes;
+    }
 
 }
