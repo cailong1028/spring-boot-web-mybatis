@@ -19,11 +19,15 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.net.URL;
 import java.util.LinkedList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 
 public class AppTest {
     Logger logger = LoggerFactory.getLogger(AppTest.class);
+    volatile int volatile_number = 0;
+    volatile AtomicInteger volatile_atom_number = new AtomicInteger(0);
 
     @Before
     public void init(){
@@ -55,11 +59,11 @@ public class AppTest {
 
     @Test
     public void loggerFactoryTest(){
-        //        LoggerFactory.setWriter("/Users/bqj/Desktop/d.txt");
+                LoggerFactory.setWriter("/Users/bqj/Desktop/d.txt");
         long begin = System.currentTimeMillis();
         Logger logger = LoggerFactory.getLogger(LoggerFactory.class);
         Logger logger2 = LoggerFactory.getLogger(Logger.class);
-        for(int i = 0; i < 10000; i++){
+        for(int i = 0; i < 2; i++){
             final int b = i;
             new Thread(new Runnable() {
                 @Override
@@ -71,7 +75,7 @@ public class AppTest {
         }
         logger.info("%d", System.currentTimeMillis() - begin);
 
-        logger.info("%s", "A");
+        logger.info("%s", "中文");
         logger.info(1, "%s", "A");
         logger.warn("%s", "A");
         logger.warn(1, "%s", "A");
@@ -140,5 +144,31 @@ public class AppTest {
         assertTrue(true);
         IOUtil.writeFile("这个一个系统简介__123abc谢谢", "c:/Users/cl/Desktop/c.txt");
         assertTrue(true);
+    }
+
+    @Test
+    public void VolatileTest(){
+        int loop = 100;
+        int times = 10000;
+        CountDownLatch latch = new CountDownLatch(loop);
+        for(int i = 0; i < loop; i++){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for(int j = 0; j < times; j++){
+                        volatile_number++;
+                        volatile_atom_number.incrementAndGet();
+                    }
+                    latch.countDown();
+                }
+            }).start();
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        assertEquals(loop * times, volatile_atom_number.get());
+        assertEquals(loop * times, volatile_number);
     }
 }

@@ -12,6 +12,7 @@ public class LoggerFactory {
     private String writer;
     private String fileEncoding = "utf-8";
     private static LoggerFactory instance;
+    private LinkedList<String> receiveList = new LinkedList<>();
     private LinkedList<String> messageList = new LinkedList<>();
     private int logLevel = MessageType.valueOf("INFO").getCode();
 
@@ -164,7 +165,14 @@ public class LoggerFactory {
     }
 
     void notifyMsg(String msg){
-        synchronized (messageList){
+//        receiveList.addLast(msg);
+//        while (receiveList.size() > 0) {
+//            synchronized (messageList) {
+//                messageList.addLast(receiveList.poll());
+//                messageList.notify();
+//            }
+//        }
+        synchronized (messageList) {
             messageList.addLast(msg);
             messageList.notify();
         }

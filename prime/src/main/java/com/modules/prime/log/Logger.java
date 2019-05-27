@@ -53,7 +53,7 @@ public class Logger {
             return;
         }
         StringBuffer sb = new StringBuffer(String.format("[%s] [%s] [%s - %s] [%s] : ",
-                DateUtil.getFormatTime("yyyy-MM-dd HH:mm:ss.S", System.currentTimeMillis()),
+                DateUtil.getFormatTime("yyyy-MM-dd HH:mm:ss.SSS", System.currentTimeMillis()),
                 type,
                 pid,
                 Thread.currentThread().getName(),

@@ -62,6 +62,9 @@
                 <filtering>true</filtering>
             </resource>
             <resource>
+                <directory>src/main/resources2</directory>
+            </resource>
+            <resource>
                 <directory>src/test/resources</directory>
             </resource>
         </resources>
