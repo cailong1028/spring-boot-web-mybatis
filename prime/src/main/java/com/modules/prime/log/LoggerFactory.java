@@ -1,5 +1,7 @@
 package com.modules.prime.log;
 
+import com.modules.prime.util.DateUtil;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -12,7 +14,6 @@ public class LoggerFactory {
     private String writer;
     private String fileEncoding = "utf-8";
     private static LoggerFactory instance;
-    private LinkedList<String> receiveList = new LinkedList<>();
     private LinkedList<String> messageList = new LinkedList<>();
     private int logLevel = MessageType.valueOf("INFO").getCode();
 
@@ -173,7 +174,8 @@ public class LoggerFactory {
 //            }
 //        }
         synchronized (messageList) {
-            messageList.addLast(msg);
+            //时间在同步块内部，不然线程执行频繁的情况下，时间顺序会乱
+            messageList.addLast(String.format("[%s] "+msg, DateUtil.getFormatTime("yyyy-MM-dd HH:mm:ss.SSS", System.currentTimeMillis())));
             messageList.notify();
         }
     }

@@ -52,8 +52,7 @@ public class Logger {
         if(checkLevel(type)){
             return;
         }
-        StringBuffer sb = new StringBuffer(String.format("[%s] [%s] [%s - %s] [%s] : ",
-                DateUtil.getFormatTime("yyyy-MM-dd HH:mm:ss.SSS", System.currentTimeMillis()),
+        StringBuffer sb = new StringBuffer(String.format("[%s] [%s - %s] [%s] : ",
                 type,
                 pid,
                 Thread.currentThread().getName(),
@@ -68,15 +67,6 @@ public class Logger {
             sb.append("\t");
         }
         LoggerFactory.getInstance().notifyMsg(sb.append(String.format(info, args)).toString());
-    }
-
-    String combineExceptionInfo(String message){
-        StringBuffer sb = new StringBuffer(String.format("[%s] [%s] [%s] [%s] : %s",
-                DateUtil.getFormatTime("yyyy-MM-dd HH:mm:ss.S", System.currentTimeMillis()),
-                "ERROR",
-                Thread.currentThread().getName(),
-                className, message));
-        return sb.toString();
     }
 
     private boolean checkLevel(String level){
