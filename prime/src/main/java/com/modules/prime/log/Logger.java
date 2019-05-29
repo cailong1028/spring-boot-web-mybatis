@@ -1,7 +1,5 @@
 package com.modules.prime.log;
 
-import com.modules.prime.util.DateUtil;
-
 import java.lang.management.ManagementFactory;
 
 public class Logger {
@@ -57,12 +55,6 @@ public class Logger {
                 pid,
                 Thread.currentThread().getName(),
                 className));
-//            StringBuffer sb = new StringBuffer();
-//            sb.append("["+DateUtil.getFormatTime("yyyy-MM-dd HH:mm:ss.S", System.currentTimeMillis())+"]");
-//            sb.append("["+type+"]");
-//            sb.append("["+pid+"]");
-//            sb.append("["+Thread.currentThread().getName()+"]");
-//            sb.append("["+className+"] : ");
         while(depth-- > 0){
             sb.append("\t");
         }

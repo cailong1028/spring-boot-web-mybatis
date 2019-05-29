@@ -166,13 +166,6 @@ public class LoggerFactory {
     }
 
     void notifyMsg(String msg){
-//        receiveList.addLast(msg);
-//        while (receiveList.size() > 0) {
-//            synchronized (messageList) {
-//                messageList.addLast(receiveList.poll());
-//                messageList.notify();
-//            }
-//        }
         synchronized (messageList) {
             //时间在同步块内部，不然线程执行频繁的情况下，时间顺序会乱
             messageList.addLast(String.format("[%s] "+msg, DateUtil.getFormatTime("yyyy-MM-dd HH:mm:ss.SSS", System.currentTimeMillis())));

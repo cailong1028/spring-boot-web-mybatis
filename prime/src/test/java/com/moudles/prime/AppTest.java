@@ -6,8 +6,6 @@ import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.BO;
 import com.modules.prime.util.DateUtil;
 import com.modules.prime.util.IOUtil;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import sun.rmi.runtime.Log;
@@ -18,7 +16,10 @@ import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.net.URL;
+import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -31,7 +32,6 @@ public class AppTest {
 
     @Before
     public void init(){
-        //Logger logger = LoggerFactory.getLogger(AppTest.class);
     }
 
     @Test
@@ -116,17 +116,25 @@ public class AppTest {
     @Test
     public void BOTest(){
         BO bo = new BO();
-        for(int i = 0; i < 1; i++){
-            final int b = i;
+        int loop = 10;
+        CountDownLatch latch = new CountDownLatch(loop);
+        for(int i = 0; i < loop; i++){
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    JSONArray ja = bo.query("select * from test where name = ?", "cl");
-                    logger.info(((JSONObject)ja.get(0)).getString("name"));
-                    assertNotEquals(ja.length(), 1);
+                    List<Map<String, Object>> result = bo.query("select * from test where name = ?", "cl");
+                    List<Map<String, Object>> result2 = bo.query("select * from test where name = ? and email = ?", "cl", "cl@126.com");
+                    latch.countDown();
                 }
             }).start();
         }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            assertFalse(false);
+        }
+        assertTrue(true);
     }
 
     @Test

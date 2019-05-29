@@ -14,7 +14,7 @@ import java.util.concurrent.TimeoutException;
 
 //事务，日志级别，改pool为两个hashmap的组合，locked，unlocked
 //大量测试
-public class PoolManager {
+final class PoolManager {
 
     Logger logger = LoggerFactory.getLogger(PoolManager.class);
 
@@ -108,8 +108,7 @@ public class PoolManager {
         long begin = System.currentTimeMillis();
         while(poolConn == null){
             if(System.currentTimeMillis() - begin > timeout){
-                Map<String, Integer> state = state();
-                logger.debug("working %d free %d time out when get PoolConnection", state.get("working"), state.get("free"));
+                logger.debug("time out %s", stateInfo());
                 throw new TimeoutException();
             }
             //getFreeConnection在同步内执行
@@ -132,7 +131,7 @@ public class PoolManager {
                 }
                 try {
                     //尝试重新获取连接
-                    logger.warn("waiting for get pool connection");
+                    logger.warn("waiting for get pool connection, %s", stateInfo());
                     connectionPool.wait(timeout);
                 } catch (InterruptedException e) {
                     logger.error(e);
@@ -140,7 +139,10 @@ public class PoolManager {
                 }
             }
         }
+        //更新时间
+        poolConn.setTime(System.currentTimeMillis());
         poolConn.setWorking(true);
+        logger.debug("get one connection %s, %s", poolConn.getId(), stateInfo());
 
         return poolConn;
     }
@@ -163,7 +165,7 @@ public class PoolManager {
         if(poolConnection != null){
             synchronized (connectionPool){
                 poolConnection.setWorking(false);
-                logger.debug("release one %s", poolConnection.getId());
+                logger.debug("release one connection %s, now %s", poolConnection.getId(), stateInfo());
                 connectionPool.notify();
                 return true;
             }
@@ -217,6 +219,18 @@ public class PoolManager {
         return state;
     }
 
+    public String stateInfo(){
+        int working = 0, free = 0;
+        for(String oneKey:connectionPool.keySet()){
+            if (connectionPool.get(oneKey).isWorking()) {
+                working++;
+            } else {
+                free++;
+            }
+        }
+        return "working connection [" + working + "] free connection ["+free+"]";
+    }
+
     class PoolConnection{
         private String id;
         private long time;
@@ -247,6 +261,10 @@ public class PoolManager {
 
         public boolean setWorking(boolean b) {
             return this.working = b;
+        }
+
+        public void setTime(long timeMillis){
+            this.time = timeMillis;
         }
     }
 }

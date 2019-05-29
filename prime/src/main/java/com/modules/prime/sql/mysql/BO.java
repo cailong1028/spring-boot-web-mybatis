@@ -2,26 +2,30 @@ package com.modules.prime.sql.mysql;
 
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.sql.*;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 public class BO {
 
     Logger logger = LoggerFactory.getLogger(BO.class);
 
-    public JSONArray query(String sql, Object... args){
+    public List<Map<String, Object>> query(String sql, Object... args){
         PoolManager poolManager = PoolManager.getInstance();
         PoolManager.PoolConnection poolConnection = null;
         Connection conn = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
-        JSONArray ja = new JSONArray();
+        List<Map<String, Object>> mapList = new ArrayList<>();
         try {
             poolConnection = poolManager.getPoolConnection();
-            //logger.info(poolConnection.getId());
+            logger.debug("sql: [%s] ", sql);
+            String[] argValues = new String[args.length];
+            for(int i = 0; i < args.length; i++){
+                argValues[i] = args[i].toString();
+            }
+            logger.debug("args: [%s] ", String.join(", ", argValues));
             conn = poolConnection.getConnection();
             pst = conn.prepareStatement(sql);
             for(int k = 0; k < args.length; k++){
@@ -31,14 +35,12 @@ public class BO {
             ResultSetMetaData rsmd = rs.getMetaData();
             int colCnt = rsmd.getColumnCount();
             while(rs.next()){
-                JSONObject jo = new JSONObject();
+                Map<String, Object> oneMap = new HashMap<>();
                 for(int i = 1; i <= colCnt; i++){
-                    jo.put(rsmd.getColumnName(i), rs.getObject(rsmd.getColumnName(i)));
+                    oneMap.put(rsmd.getColumnName(i), rs.getObject(rsmd.getColumnName(i)));
                 }
-                ja.put(jo);
+                mapList.add(oneMap);
             }
-//            Map<String, Integer> state = poolManager.state();
-//            logger.info("working %d free %d", state.get("working"), state.get("free"));
         } catch (TimeoutException e) {
             logger.error(e);
             //e.printStackTrace();
@@ -66,45 +68,11 @@ public class BO {
                 poolManager.releasePoolConnection(poolConnection);
             }
         }
-        return ja;
+        return mapList;
     }
 
     public void batchAdd(){
 
     }
 
-    public static void main(String[] args) {
-        //LoggerFactory.setWriter("/Users/bqj/Desktop/a.txt");
-        Logger logger = LoggerFactory.getLogger(BO.class);
-        BO bo = new BO();
-//        for(int i = 0; i < 2; i++){
-//            final int b = i;
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    JSONArray ja = bo.query("select * from test where name = ?", "cl2");
-//                    if(ja.length() > 0){
-//                        logger.info(((JSONObject)ja.get(0)).getString("name"));
-//                    }
-//                }
-//            }).start();
-//        }
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-        for(int i = 0; i < 500; i++){
-            final int b = i;
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    JSONArray ja = bo.query("select * from test where name = ?", "cl");
-                    if(ja.length() > 0){
-                        logger.info(((JSONObject)ja.get(0)).getString("name"));
-                    }
-                }
-            }).start();
-        }
-    }
 }
