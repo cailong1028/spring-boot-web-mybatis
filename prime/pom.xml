@@ -53,6 +53,13 @@
             <artifactId>json</artifactId>
             <version>20180813</version>
         </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.ow2.asm/asm -->
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>7.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>
