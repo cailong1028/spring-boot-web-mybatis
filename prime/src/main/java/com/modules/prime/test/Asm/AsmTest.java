@@ -35,27 +35,8 @@ public class AsmTest {
             //scan class 修改
 
             new Account();
-
-            String className = "com.modules.prime.test.Asm.Account";
-            String enhancedName = "com.modules.prime.test.Asm.SecurityChecker";
-            ClassReader cr = new ClassReader(className);
-            ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-            ClassAdapter classAdapter = new AddSecurityCheckClassAdapter(cw);
-            cr.accept(classAdapter, ClassReader.SKIP_DEBUG);
-            byte[] data = cw.toByteArray();
-//            File file = new File("/Users/bqj/workspace/spring-boot-web-mybatis/prime/target/classes/com/modules/prime/test/Asm/Account.class");
-//            System.out.println(file.getAbsolutePath());
-//            FileOutputStream fout = new FileOutputStream(file);
-//            fout.write(data);
-//            fout.close();
-            enhancedName = className.replace(".", "$")+"$EnhancedASM";
-            Class obj = new AOPGeneratorClassLoader().defineClassFromClassFile(enhancedName, data);
-            obj.newInstance();
-            //new Account().operation();
+            new SecureAccountGenerator().generateSecureAccount("com.modules.prime.test.Asm.Account").operation();
         }
-//        ClassWriter
-//        A a = new A();
-//        a.say();
     }
 
     static class AOPGeneratorClassLoader extends ClassLoader {
@@ -127,6 +108,7 @@ class  AddSecurityCheckClassAdapter extends ClassAdapter{
             }
             return wrapperMv;
         }
+        return null;
     }
     public void visit(final int version, final int access, final String name,
                       final String signature, final String superName,
@@ -160,7 +142,7 @@ class AddScrtMethodAdapter extends MethodAdapter{
         super(mv);
     }
     public void visitCode(){
-        visitMethodInsn(Opcodes.INVOKESTATIC, "com.modules.prime.test.Asm.SecurityChecker","checkSecurity", "()V");
+        visitMethodInsn(Opcodes.INVOKESTATIC, "com/modules/prime/test/Asm/SecurityChecker","checkSecurity", "()V");
     }
 }
 
@@ -171,16 +153,17 @@ class SecureAccountGenerator {
 
     private static Class secureAccountClass;
 
-    public Account generateSecureAccount() throws ClassFormatError,
+    public Account generateSecureAccount(String className) throws ClassFormatError,
             InstantiationException, IllegalAccessException, IOException {
         if (null == secureAccountClass) {
-            ClassReader cr = new ClassReader("Account");
+
+            ClassReader cr = new ClassReader(className);
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             ClassAdapter classAdapter = new AddSecurityCheckClassAdapter(cw);
             cr.accept(classAdapter, ClassReader.SKIP_DEBUG);
             byte[] data = cw.toByteArray();
             secureAccountClass = classLoader.defineClassFromClassFile(
-                    "Account$EnhancedByASM",data);
+                    className+"$EnhancedByASM",data);
         }
         return (Account) secureAccountClass.newInstance();
     }
@@ -188,8 +171,8 @@ class SecureAccountGenerator {
     private static class AccountGeneratorClassLoader extends ClassLoader {
         public Class defineClassFromClassFile(String className,
                                               byte[] classFile) throws ClassFormatError {
-            return defineClass("Account$EnhancedByASM", classFile, 0,
-                    classFile.length());
+            return defineClass(className, classFile, 0,
+                    classFile.length);
         }
     }
 }

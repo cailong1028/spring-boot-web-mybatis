@@ -1,13 +1,13 @@
-import com.modules.prime.test.Asm.Account;
 import com.sun.xml.internal.ws.org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class AsmTest {
+public class AsmTest2 {
     public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InvocationTargetException, IOException, InterruptedException {
-
+        Account account = new SecureAccountGenerator().generateSecureAccount();
+        account.operation();
     }
 
 }
@@ -67,7 +67,7 @@ class AddScrtMethodAdapter extends MethodAdapter{
         super(mv);
     }
     public void visitCode(){
-        visitMethodInsn(Opcodes.INVOKESTATIC, "com.modules.prime.test.Asm.SecurityChecker","checkSecurity", "()V");
+        visitMethodInsn(Opcodes.INVOKESTATIC, "SecurityChecker","checkSecurity", "()V");
     }
 }
 
@@ -95,7 +95,7 @@ class SecureAccountGenerator {
     private static class AccountGeneratorClassLoader extends ClassLoader {
         public Class defineClassFromClassFile(String className,
                                               byte[] classFile) throws ClassFormatError {
-            return defineClass("Account$EnhancedByASM", classFile, 0,
+            return defineClass(className, classFile, 0,
                     classFile.length);
         }
     }
