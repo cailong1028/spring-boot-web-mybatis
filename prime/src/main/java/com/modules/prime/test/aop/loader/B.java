@@ -1,4 +1,4 @@
-package com.modules.prime.test.Asm.loader;
+package com.modules.prime.test.aop.loader;
 
 public class B extends A {
     public void run() {

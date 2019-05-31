@@ -1,17 +1,17 @@
+package com.modules.prime.test.aop.asm;
+
 import com.sun.xml.internal.ws.org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
-public class AsmTest2 {
+public class AsmTest {
     public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InvocationTargetException, IOException, InterruptedException {
-        Account account = new SecureAccountGenerator().generateSecureAccount();
-        account.operation();
+        new Account();
+        new SecureAccountGenerator().generateSecureAccount("com.modules.prime.test.aop.asm.Account").operation();
     }
 
 }
-
 
 class  AddSecurityCheckClassAdapter extends ClassAdapter{
 
@@ -67,27 +67,28 @@ class AddScrtMethodAdapter extends MethodAdapter{
         super(mv);
     }
     public void visitCode(){
-        visitMethodInsn(Opcodes.INVOKESTATIC, "SecurityChecker","checkSecurity", "()V");
+        visitMethodInsn(Opcodes.INVOKESTATIC, "com/modules/prime/test/aop/asm/SecurityChecker","checkSecurity", "()V");
     }
 }
 
 class SecureAccountGenerator {
 
-    private static SecureAccountGenerator.AccountGeneratorClassLoader classLoader =
-            new SecureAccountGenerator.AccountGeneratorClassLoader();
+    private static AccountGeneratorClassLoader classLoader =
+            new AccountGeneratorClassLoader();
 
     private static Class secureAccountClass;
 
-    public Account generateSecureAccount() throws ClassFormatError,
+    public Account generateSecureAccount(String className) throws ClassFormatError,
             InstantiationException, IllegalAccessException, IOException {
         if (null == secureAccountClass) {
-            ClassReader cr = new ClassReader("Account");
+
+            ClassReader cr = new ClassReader(className);
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             ClassAdapter classAdapter = new AddSecurityCheckClassAdapter(cw);
             cr.accept(classAdapter, ClassReader.SKIP_DEBUG);
             byte[] data = cw.toByteArray();
             secureAccountClass = classLoader.defineClassFromClassFile(
-                    "Account$EnhancedByASM",data);
+                    className+"$EnhancedByASM",data);
         }
         return (Account) secureAccountClass.newInstance();
     }
@@ -100,4 +101,39 @@ class SecureAccountGenerator {
         }
     }
 }
+
+
+
+
+
+/*//删除类的字段、方法、指令
+class DelLoginClassAdapter extends ClassAdapter {
+    public DelLoginClassAdapter(ClassVisitor cv) {
+        super(cv);
+    }
+
+    public MethodVisitor visitMethod(final int access, final String name,
+                                     final String desc, final String signature, final String[] exceptions) {
+        if (name.equals("login")) {
+            return null;
+        }
+        return cv.visitMethod(access, name, desc, signature, exceptions);
+    }
+}
+
+//修改类、字段、方法的名字或修饰符
+class AccessClassAdapter extends ClassAdapter{
+    public AccessClassAdapter(ClassVisitor cv){
+        super(cv);
+    }
+
+    public FieldVisitor visitField(final int access, final String name,
+                                   final String desc, final String signature, final Object value){
+        int privateAccess = Opcodes.ACC_PRIVATE;
+        return cv.visitField(privateAccess, name, desc, signature, value);
+    }
+}*/
+
+
+
 

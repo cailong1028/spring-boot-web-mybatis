@@ -1,4 +1,4 @@
-package com.modules.prime.test.Asm.monitor;
+package com.modules.prime.test.aop.monitor;
 
 import com.sun.xml.internal.ws.org.objectweb.asm.MethodAdapter;
 import com.sun.xml.internal.ws.org.objectweb.asm.MethodVisitor;

@@ -1,4 +1,4 @@
-package com.modules.prime.test.Asm.loader;
+package com.modules.prime.test.aop.loader;
 
 public class A {
     public void run() {

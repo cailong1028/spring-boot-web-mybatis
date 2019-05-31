@@ -1,4 +1,4 @@
-package com.modules.prime.test.Asm.loader;
+package com.modules.prime.test.aop.loader;
 
 import jdk.internal.org.objectweb.asm.ClassReader;
 import jdk.internal.org.objectweb.asm.ClassWriter;

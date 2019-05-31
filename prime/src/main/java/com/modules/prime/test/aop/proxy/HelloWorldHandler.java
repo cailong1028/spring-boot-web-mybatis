@@ -1,4 +1,4 @@
-package com.modules.prime.test.Asm.proxy;
+package com.modules.prime.test.aop.proxy;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

@@ -1,4 +1,4 @@
-package com.modules.prime.test.Asm.proxy;
+package com.modules.prime.test.aop.proxy;
 
 public class HelloWorldImp implements HelloWorld {
     @Override

@@ -1,6 +1,8 @@
+package com.modules.prime.test.aop.asm;
+
 public class SecurityChecker {
     public static void checkSecurity() {
-        System.out.println("SecurityChecker.checkSecurity22 ...");
+        System.out.println("SecurityChecker.checkSecurity ....");
         //TODO real security check
     }
 }
