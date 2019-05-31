@@ -1,9 +1,14 @@
 package com.moudles.prime;
 
 
+import com.modules.prime.biz.LoginBiz;
+import com.modules.prime.biz.LoginBizHandler;
+import com.modules.prime.biz.LoginBizImp;
+import com.modules.prime.biz.LoginBizWrapper;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
-import com.modules.prime.sql.mysql.BO;
+import com.modules.prime.sql.mysql.Bo;
+import com.modules.prime.test.aop.proxy.HelloWorld;
 import com.modules.prime.util.DateUtil;
 import com.modules.prime.util.IOUtil;
 import org.junit.Before;
@@ -16,7 +21,6 @@ import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.net.URL;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +119,7 @@ public class AppTest {
 
     @Test
     public void BOTest(){
-        BO bo = new BO();
+        Bo bo = new Bo();
         int loop = 10;
         CountDownLatch latch = new CountDownLatch(loop);
         for(int i = 0; i < loop; i++){
@@ -178,5 +182,11 @@ public class AppTest {
         }
         assertEquals(loop * times, volatile_atom_number.get());
         assertEquals(loop * times, volatile_number);
+    }
+
+    @Test
+    public void BizTest(){
+        LoginBiz loginBiz = LoginBizWrapper.getWrapper(new LoginBizImp());
+        loginBiz.login("a", "b");
     }
 }

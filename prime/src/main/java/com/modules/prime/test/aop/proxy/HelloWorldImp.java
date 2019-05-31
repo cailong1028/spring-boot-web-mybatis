@@ -5,4 +5,9 @@ public class HelloWorldImp implements HelloWorld {
     public void say() {
         System.out.println("hello");
     }
+
+    @Override
+    public void work() {
+        System.out.println("work");
+    }
 }

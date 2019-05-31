@@ -1,21 +1,25 @@
-package com.modules.prime.test.aop.proxy;
+package com.modules.prime.biz;
+
+import com.modules.prime.annotation.BoSession;
+import com.modules.prime.sql.mysql.SBo;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
 
-public class HelloWorldHandler implements InvocationHandler {
+public class LoginBizHandler implements InvocationHandler {
 
-    //要代理的原始对象
-    private Object objOriginal;
-    /**
-     * 构造函数。
-     * @param obj 要代理的原始对象。
-     */
-    private HelloWorldHandler(Object obj) {
-        System.out.println("new");
-        this.objOriginal = obj ;
+    private LoginBiz loginBiz;
+    private SBo sbo;
+    public LoginBizHandler(LoginBiz loginBiz){
+        //解析类annotation
+        BoSession boSession = loginBiz.getClass().getAnnotation(BoSession.class);
+        int value = boSession.value();
+
+
+        this.loginBiz = loginBiz;
+
+
     }
 
     /**
@@ -65,40 +69,26 @@ public class HelloWorldHandler implements InvocationHandler {
      */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Object result ;
+        BoSession boSession = method.getAnnotation(BoSession.class);
+        beforeInvoke(boSession);
+        Object ret = method.invoke(this.loginBiz, args);
+        afterInvoke();
+        return ret;
+    }
 
-        if(proxy instanceof HelloWorld && method.getName().equals("say")){
-            //方法调用之前
-            doBefore();
+    private void beforeInvoke(BoSession boSession){
+        //判定初次进入bo方法还是多次进入
+        if(null == boSession){
+            sbo = new SBo();
+        }else{
+            sbo = new SBo(boSession.value());
         }
 
-        //调用原始对象的方法
-        result = method.invoke(this.objOriginal ,args);
-
-        //方法调用之后
-        doAfter();
-
-        return result ;
     }
 
-    private void doBefore() {
-        System.out.println("before method invoke!");
+    private void afterInvoke(){
+        //判定方法调用最后的终结
+        sbo.commit();
     }
 
-    private void doAfter() {
-        System.out.println("after method invoke!");
-    }
-
-    public static void main(String[] args) {
-        HelloWorld hw = new HelloWorldImp();
-
-        InvocationHandler handler = new HelloWorldHandler(hw);
-
-        HelloWorld proxy = (HelloWorld) Proxy.newProxyInstance(
-                hw.getClass().getClassLoader(),
-                hw.getClass().getInterfaces(),
-                handler);
-        proxy.say();
-        proxy.work();
-    }
 }

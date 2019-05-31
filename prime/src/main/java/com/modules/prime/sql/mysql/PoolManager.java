@@ -60,7 +60,7 @@ final class PoolManager {
                                 }
                                 logger.debug("monitoring will remove freeList.size = " + freeList.size());
                                 if (freeList.size() > 0) {
-                                    removePoolConnection(freeList);
+                                    scanPoolConnection(freeList);
                                 }
                             }
                         }
@@ -172,24 +172,27 @@ final class PoolManager {
         }
         return false;
     }
-
-    void removePoolConnection(LinkedList<PoolConnection> list){
+    boolean removePoolConnection(PoolConnection poolConnection){
+        //workingPool.
         synchronized (connectionPool){
-            PoolConnection poolConnection = list.pop();
-            while( poolConnection != null){
+            while(poolConnection != null){
                 Connection connection = poolConnection.getConnection();
                 try {
                     connection.close();
                 } catch (SQLException e) {
                     connection = null;
                     logger.error(e);
-                    //e.printStackTrace();
                 }finally {
                     connectionPool.remove(poolConnection.getId());
                 }
             }
             connectionPool.notify();
         }
+        return false;
+    }
+    void scanPoolConnection(LinkedList<PoolConnection> list){
+        PoolConnection poolConnection = list.pop();
+        removePoolConnection(poolConnection);
     }
 
     private PoolConnection createConnection() throws SQLException {
@@ -265,6 +268,39 @@ final class PoolManager {
 
         public void setTime(long timeMillis){
             this.time = timeMillis;
+        }
+
+        public void setIsolation(int isolation){
+            try {
+                this.getConnection().setTransactionIsolation(isolation);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                removePoolConnection(this);
+            }
+        }
+        public void setAutoCommit(boolean b){
+            try {
+                this.getConnection().setAutoCommit(b);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                removePoolConnection(this);
+            }
+        }
+        public void commit(){
+            try {
+                this.getConnection().commit();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                removePoolConnection(this);
+            }
+        }
+        public void rollback(){
+            try {
+                this.getConnection().rollback();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                removePoolConnection(this);
+            }
         }
     }
 }
