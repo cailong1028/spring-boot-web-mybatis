@@ -142,7 +142,7 @@ final class PoolManager {
         //更新时间
         poolConn.setTime(System.currentTimeMillis());
         poolConn.setWorking(true);
-        logger.debug("get one connection %s, %s", poolConn.getId(), stateInfo());
+        logger.debug("connection [%s] get, %s", poolConn.getId(), stateInfo());
 
         return poolConn;
     }
@@ -165,7 +165,7 @@ final class PoolManager {
         if(poolConnection != null){
             synchronized (connectionPool){
                 poolConnection.setWorking(false);
-                logger.debug("release one connection %s, now %s", poolConnection.getId(), stateInfo());
+                logger.debug("connection [%s] release, now %s", poolConnection.getId(), stateInfo());
                 connectionPool.notify();
                 return true;
             }
@@ -289,6 +289,7 @@ final class PoolManager {
         public void commit(){
             try {
                 this.getConnection().commit();
+                logger.debug("connection [%s] commit", this.getId());
             } catch (SQLException e) {
                 e.printStackTrace();
                 removePoolConnection(this);
@@ -297,6 +298,7 @@ final class PoolManager {
         public void rollback(){
             try {
                 this.getConnection().rollback();
+                logger.debug("[connection %s] rollback", this.getId());
             } catch (SQLException e) {
                 e.printStackTrace();
                 removePoolConnection(this);

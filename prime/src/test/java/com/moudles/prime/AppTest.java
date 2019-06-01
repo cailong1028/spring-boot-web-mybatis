@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -185,8 +186,8 @@ public class AppTest {
     }
 
     @Test
-    public void BizTest(){
-        LoginBiz loginBiz = LoginBizWrapper.getWrapper(new LoginBizImp());
+    public void BizTest() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        LoginBiz loginBiz = LoginBizWrapper.getWrapper(LoginBizHandler.class, LoginBizImp.class);
         loginBiz.login("a", "b");
     }
 }

@@ -24,7 +24,7 @@ public class Bo {
         List<Map<String, Object>> mapList = new ArrayList<>();
         try {
             poolConnection = poolManager.getPoolConnection();
-            logger.debug("sql: [%s] ", sql);
+            logger.debug("exec: [%s] ", sql);
             String[] argValues = new String[args.length];
             for(int i = 0; i < args.length; i++){
                 argValues[i] = args[i].toString();
@@ -84,7 +84,7 @@ public class Bo {
         List<Map<String, Object>> mapList = new ArrayList<>();
         try {
             poolConnection = poolManager.getPoolConnection();
-            logger.debug("sql: [%s] ", sql);
+            logger.debug("exec: [%s] ", sql);
             String[] argValues = new String[args.length];
             for(int i = 0; i < args.length; i++){
                 argValues[i] = args[i].toString();
