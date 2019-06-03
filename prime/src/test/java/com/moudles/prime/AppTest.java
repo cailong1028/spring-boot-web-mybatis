@@ -1,14 +1,9 @@
 package com.moudles.prime;
 
 
-import com.modules.prime.biz.LoginBiz;
-import com.modules.prime.biz.LoginBizHandler;
-import com.modules.prime.biz.LoginBizImp;
-import com.modules.prime.biz.LoginBizWrapper;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.Bo;
-import com.modules.prime.test.aop.proxy.HelloWorld;
 import com.modules.prime.util.DateUtil;
 import com.modules.prime.util.IOUtil;
 import org.junit.Before;
@@ -20,7 +15,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -185,9 +179,4 @@ public class AppTest {
         assertEquals(loop * times, volatile_number);
     }
 
-    @Test
-    public void BizTest() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        LoginBiz loginBiz = LoginBizWrapper.getWrapper(LoginBizHandler.class, LoginBizImp.class);
-        loginBiz.login("a", "b");
-    }
 }

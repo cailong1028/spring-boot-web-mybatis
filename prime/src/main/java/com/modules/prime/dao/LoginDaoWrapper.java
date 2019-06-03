@@ -1,10 +1,10 @@
-package com.modules.prime.biz;
+package com.modules.prime.dao;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 
-public class LoginBizWrapper {
+public class LoginDaoWrapper {
 
     public static <T> T getWrapper(Class<?> Handler, Class<?> BizImp) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         Constructor constructor = Handler.getConstructor(BizImp);

@@ -1,4 +1,4 @@
-package com.modules.prime.biz;
+package com.modules.prime.dao;
 
 import com.modules.prime.annotation.BoSession;
 import com.modules.prime.sql.mysql.SBo;
@@ -7,11 +7,11 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 
-public class LoginBizHandler implements InvocationHandler {
+public class LoginDaoHandler implements InvocationHandler {
 
-    private LoginBiz loginBiz;
+    private LoginDao loginBiz;
     private SBo sbo;
-    public LoginBizHandler(LoginBiz loginBiz){
+    public LoginDaoHandler(LoginDao loginBiz){
         //解析类annotation
         BoSession boSession = loginBiz.getClass().getAnnotation(BoSession.class);
         int value = boSession.value();
@@ -87,6 +87,7 @@ public class LoginBizHandler implements InvocationHandler {
     }
 
     private void afterInvoke(){
+        //sbo
         //判定方法调用最后的终结
         sbo.commit();
     }

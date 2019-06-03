@@ -1,12 +1,16 @@
 package com.modules.prime.biz;
 
 import com.modules.prime.annotation.BoSession;
+import com.modules.prime.annotation.Sql;
+import com.modules.prime.dao.PrimeDao;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.SBo;
-import sun.rmi.runtime.Log;
 
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.lang.reflect.UndeclaredThrowableException;
 
 public class BizHandler implements InvocationHandler {
 
@@ -21,7 +25,7 @@ public class BizHandler implements InvocationHandler {
         Class<?> bizInft = null;
         Type[] intfs = c.getInterfaces();
         for(Type type:intfs){
-            if(PrimeBiz.class.isAssignableFrom(((Class)type))){
+            if(PrimeDao.class.isAssignableFrom(((Class)type))){
                 //System.out.println("aa");
                 bizInft = (Class)type;
                 isBiz = true;
@@ -91,6 +95,8 @@ public class BizHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         BoSession boSession = method.getAnnotation(BoSession.class);
+        Sql sqlAnno = method.getAnnotation(Sql.class);
+        String sql = sqlAnno.value();
         beforeInvoke(boSession);
         Object ret = method.invoke(this.biz, args);
         afterInvoke();
@@ -115,33 +121,26 @@ public class BizHandler implements InvocationHandler {
 
 
     public static void main(String[] args) throws IllegalAccessException, InstantiationException {
-        //new BizHandler();
-        //Class<LoginBizImp> loginBizImpClass = LoginBizImp.class;
 
-        Object obj = (new BizWrapper().wrap(LoginBizImp.class));
-        boolean isBiz = false;
-        Class<?> bizInft = null;
-        Type[] intfs = LoginBizImp.class.getInterfaces();
-        for(Type type:intfs){
-            if(PrimeBiz.class.isAssignableFrom(((Class)type))){
-                //System.out.println("aa");
-                bizInft = (Class)type;
-                isBiz = true;
-                break;
-            }
-        }
-        bizInft.cast(obj);
-        ((LoginBiz)obj).login("","");
-        LoginBiz o = LoginBiz.class.cast(obj);
+//        Object obj = (new com.modules.prime.dao.DaoWrapper().wrap(LoginDaoImp.class));
+//        boolean isBiz = false;
+//        Class<?> bizInft = null;
+//        Type[] intfs = LoginDaoImp.class.getInterfaces();
+//        for(Type type:intfs){
+//            if(PrimeDao.class.isAssignableFrom(((Class)type))){
+//                //System.out.println("aa");
+//                bizInft = (Class)type;
+//                isBiz = true;
+//                break;
+//            }
+//        }
+//        bizInft.cast(obj);
+//        ((LoginDao)obj).login("","");
+//        LoginDao o = LoginDao.class.cast(obj);
+
     }
 }
 
-class BizWrapper{
-    public Object wrap(Class<?> impClazz){
-        Object obj = Proxy.newProxyInstance(impClazz.getClassLoader(), impClazz.getInterfaces(), new BizHandler(impClazz));
-        return obj;
-    }
-}
 //class BizWrapperImp extends BizWrapper{
 //    public wrap(Class<?> impClazz){
 //
