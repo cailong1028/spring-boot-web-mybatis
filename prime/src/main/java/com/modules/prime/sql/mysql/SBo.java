@@ -12,6 +12,8 @@ import java.util.concurrent.TimeoutException;
 
 public class SBo {
 
+    private int propagationDeep = 0;
+
     Logger logger = LoggerFactory.getLogger(SBo.class);
     PoolManager poolManager = PoolManager.getInstance();
     PoolManager.PoolConnection poolConnection = null;
@@ -63,23 +65,20 @@ public class SBo {
             }
         } catch (SQLException e) {
             logger.error(e);
+            rollback();
             //e.printStackTrace();
         }finally {
-            if(rs != null){
-                try {
+            try {
+                if (rs != null) {
                     rs.close();
-                } catch (SQLException e) {
-                    logger.error(e);
-                    e.printStackTrace();
                 }
-            }
-            if(pst != null){
-                try {
+                if (pst != null) {
                     pst.close();
-                } catch (SQLException e) {
-                    logger.error(e);
-                    e.printStackTrace();
                 }
+            } catch (SQLException e) {
+                logger.error(e);
+                rollback();
+                //e.printStackTrace();
             }
         }
         return mapList;
@@ -97,5 +96,15 @@ public class SBo {
             poolConnection.rollback();
             poolManager.releasePoolConnection(poolConnection);
         }
+    }
+
+    public void deepAdd(){
+        ++propagationDeep;
+    }
+    public void deepReduce(){
+        --propagationDeep;
+    }
+    public int getDeep(){
+        return propagationDeep;
     }
 }

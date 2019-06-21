@@ -1,43 +1,37 @@
 package com.modules.prime.biz;
 
 import com.modules.prime.annotation.BoSession;
-import com.modules.prime.annotation.Sql;
-import com.modules.prime.dao.PrimeDao;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.SBo;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.lang.reflect.UndeclaredThrowableException;
+import java.lang.reflect.*;
 
 public class BizHandler implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BizHandler.class);
 
-    private Object biz;
-    private SBo sbo;
+    public static ThreadLocal<SBo> localSbo = new ThreadLocal<>();
+
+    LoginBiz biz;
+    private Class<?> bizType;
+
     public BizHandler(Class<?> c){
-        //解析类annotation
-//        Type[] intfs = c.getGenericInterfaces();
-        boolean isBiz = false;
         Class<?> bizInft = null;
-        Type[] intfs = c.getInterfaces();
-        for(Type type:intfs){
-            if(PrimeDao.class.isAssignableFrom(((Class)type))){
-                //System.out.println("aa");
-                bizInft = (Class)type;
-                isBiz = true;
+        //Type[] intfs = c.getInterfaces();
+        Class<?>[] intfs = c.getInterfaces();
+        for(Class<?> type:intfs){
+            if(Biz.class.isAssignableFrom(type)){
+                bizInft = type;
                 break;
             }
         }
-        if(!isBiz){
+        if(bizInft == null){
             logger.error("Class %s is not a BoBiz", c.getName());
             return;
         }
         try {
-            this.biz = c.newInstance();
+            this.biz = (LoginBiz) c.newInstance();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -93,56 +87,44 @@ public class BizHandler implements InvocationHandler {
      * @see UndeclaredThrowableException
      */
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        BoSession boSession = method.getAnnotation(BoSession.class);
-        Sql sqlAnno = method.getAnnotation(Sql.class);
-        String sql = sqlAnno.value();
-        beforeInvoke(boSession);
-        Object ret = method.invoke(this.biz, args);
-        afterInvoke();
+    public Object invoke(Object proxy, Method method, Object[] args) {
+
+        //BoSession boSession = method.getAnnotation(BoSession.class);
+
+        beforeInvoke();
+        Object ret = null;
+        try {
+            ret = method.invoke(this.biz, args);
+        } catch (IllegalAccessException e) {
+            logger.error(e);
+        } catch (InvocationTargetException e) {
+            logger.error(e);
+        }finally {
+            afterInvoke();
+        }
         return ret;
     }
 
-    private void beforeInvoke(BoSession boSession){
+    private void beforeInvoke(/*BoSession boSession*/){
         //判定初次进入bo方法还是多次进入
-        if(null == boSession){
-            sbo = new SBo();
-        }else{
-            sbo = new SBo(boSession.value());
+//        if(null == boSession){
+//            sbo = new SBo();
+//        }else{
+//            sbo = new SBo(boSession.value());
+//        }
+        if(null == localSbo.get()){
+            localSbo.set(new SBo());
         }
-        logger.info("before");
+        localSbo.get().deepAdd();
+        logger.info("before1");
     }
 
     private void afterInvoke(){
         //判定方法调用最后的终结
-        sbo.commit();
-        logger.info("after");
-    }
-
-
-    public static void main(String[] args) throws IllegalAccessException, InstantiationException {
-
-//        Object obj = (new com.modules.prime.dao.DaoWrapper().wrap(LoginDaoImp.class));
-//        boolean isBiz = false;
-//        Class<?> bizInft = null;
-//        Type[] intfs = LoginDaoImp.class.getInterfaces();
-//        for(Type type:intfs){
-//            if(PrimeDao.class.isAssignableFrom(((Class)type))){
-//                //System.out.println("aa");
-//                bizInft = (Class)type;
-//                isBiz = true;
-//                break;
-//            }
-//        }
-//        bizInft.cast(obj);
-//        ((LoginDao)obj).login("","");
-//        LoginDao o = LoginDao.class.cast(obj);
-
+        localSbo.get().deepReduce();
+        if(localSbo.get().getDeep() == 0){
+            localSbo.get().commit();
+        }
+        logger.info("after1");
     }
 }
-
-//class BizWrapperImp extends BizWrapper{
-//    public wrap(Class<?> impClazz){
-//
-//    }
-//}

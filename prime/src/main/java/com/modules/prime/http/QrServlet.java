@@ -23,8 +23,9 @@ public class QrServlet extends HttpServlet {
             zpos = new GZIPOutputStream(response.getOutputStream());
             zpos.write(QrUtil.getQrStream(content).toByteArray());
 
-            response.setContentType("application/octet-stream");
-            response.setHeader("Content-Disposition", "attachment; filename=qr.png");
+            //response.setContentType("application/octet-stream");
+            //response.setHeader("Content-Disposition", "attachment; filename=qr.png");
+            response.setContentType("image/png");
             response.setStatus(200);
             response.setHeader("Content-Encoding", "gzip");
 

@@ -1,6 +1,7 @@
 package com.modules.prime.dao;
 
 import com.modules.prime.annotation.Sql;
+import com.modules.prime.biz.BizHandler;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.SBo;
@@ -11,29 +12,27 @@ import java.util.List;
 public class DaoHandler implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(DaoHandler.class);
-    private SBo sbo;
+    private SBo sbo = BizHandler.localSbo.get();
     public DaoHandler(Class<?> c){
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] args) {
         Sql sqlAnno = method.getAnnotation(Sql.class);
         String sql = sqlAnno.value();
         beforeInvoke();
-        Object ret = this.sbo.query(sql, args);
+        Object ret = sbo.query(sql, args);
         //Object ret = method.invoke(this.dao, args);
         afterInvoke();
         return ret;
     }
 
     private void beforeInvoke(){
-        sbo = new SBo();
         logger.info("before");
     }
 
     private void afterInvoke(){
         //判定方法调用最后的终结
-        sbo.commit();
         logger.info("after");
     }
 
