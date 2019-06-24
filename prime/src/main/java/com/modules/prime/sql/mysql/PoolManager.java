@@ -106,6 +106,7 @@ final class PoolManager {
     public PoolConnection getPoolConnection() throws TimeoutException, SQLException {
         PoolConnection poolConn = null;
         long begin = System.currentTimeMillis();
+        boolean newOne = false;
         while(poolConn == null){
             if(System.currentTimeMillis() - begin > timeout){
                 logger.debug("time out %s", stateInfo());
@@ -120,6 +121,7 @@ final class PoolManager {
                 if (connectionPool.size() < maxSize) {
                     try {
                         poolConn = createConnection();
+                        newOne = true;
                         connectionPool.put(poolConn.getId(), poolConn);
                     } catch (SQLException e) {
                         logger.error(e);
@@ -142,7 +144,7 @@ final class PoolManager {
         //更新时间
         poolConn.setTime(System.currentTimeMillis());
         poolConn.setWorking(true);
-        logger.debug("connection [%s] get, %s", poolConn.getId(), stateInfo());
+        logger.debug("get in pool: [%b], connection [%s] get, %s", !newOne, poolConn.getId(), stateInfo());
 
         return poolConn;
     }

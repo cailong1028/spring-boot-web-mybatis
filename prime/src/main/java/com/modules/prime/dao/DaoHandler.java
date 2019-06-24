@@ -28,14 +28,13 @@ public class DaoHandler implements InvocationHandler {
     }
 
     private void beforeInvoke(){
-        logger.info("before");
+        //logger.info("before");
     }
 
     private void afterInvoke(){
         //判定方法调用最后的终结
-        logger.info("after");
+        //logger.info("after");
     }
-
 
     public static void main(String[] args){
         LoginDao loginDao = (LoginDao) DaoWrapper.wrap(LoginDao.class);

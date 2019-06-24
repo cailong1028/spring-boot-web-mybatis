@@ -3,6 +3,7 @@ package com.modules.prime.sql.mysql;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,6 +89,7 @@ public class SBo {
         if(poolConnection != null){
             poolConnection.commit();
             poolManager.releasePoolConnection(poolConnection);
+            poolConnection = null;
         }
     }
 
@@ -95,16 +97,23 @@ public class SBo {
         if(poolConnection != null){
             poolConnection.rollback();
             poolManager.releasePoolConnection(poolConnection);
+            poolConnection = null;
         }
     }
 
-    public void deepAdd(){
+    public void deepAdd(Class<?> invokerType, Method method){
         ++propagationDeep;
+        logger.debug("connection [%s] ++deep, and deep now is [%d], method [%s]", this.poolConnection.getId(), propagationDeep, invokerType.getName()+":"+method.getName());
     }
-    public void deepReduce(){
+    public void deepReduce(Class<?> invokerType, Method method){
         --propagationDeep;
+        logger.debug("connection [%s] --deep, and deep now is [%d], method [%s]", this.poolConnection.getId(), propagationDeep, invokerType.getName()+":"+method.getName());
     }
     public int getDeep(){
         return propagationDeep;
+    }
+
+    public boolean isValid(){
+        return poolConnection != null;
     }
 }

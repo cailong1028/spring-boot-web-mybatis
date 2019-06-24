@@ -1,6 +1,5 @@
 package com.modules.prime.biz;
 
-import com.modules.prime.annotation.BoSession;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.SBo;
@@ -90,8 +89,8 @@ public class BizHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) {
 
         //BoSession boSession = method.getAnnotation(BoSession.class);
-
-        beforeInvoke();
+        Class<?> invokerType = this.biz.getClass();
+        beforeInvoke(invokerType, method);
         Object ret = null;
         try {
             ret = method.invoke(this.biz, args);
@@ -100,31 +99,34 @@ public class BizHandler implements InvocationHandler {
         } catch (InvocationTargetException e) {
             logger.error(e);
         }finally {
-            afterInvoke();
+            afterInvoke(invokerType, method);
         }
         return ret;
     }
 
-    private void beforeInvoke(/*BoSession boSession*/){
+    private void beforeInvoke(Class<?> invokerType, Method method){
         //判定初次进入bo方法还是多次进入
 //        if(null == boSession){
 //            sbo = new SBo();
 //        }else{
 //            sbo = new SBo(boSession.value());
 //        }
-        if(null == localSbo.get()){
-            localSbo.set(new SBo());
-        }
-        localSbo.get().deepAdd();
         logger.info("before1");
+        SBo _sbo = localSbo.get();
+        if(null == _sbo || !_sbo.isValid()){
+            localSbo.set(new SBo());
+            _sbo = localSbo.get();
+        }
+        //todo 判断是否使用新的sbo (默认同一个方法内部使用同一个sbo)
+        _sbo.deepAdd(invokerType, method);
     }
 
-    private void afterInvoke(){
+    private void afterInvoke(Class<?> invokerType, Method method){
         //判定方法调用最后的终结
-        localSbo.get().deepReduce();
+        localSbo.get().deepReduce(invokerType, method);
         if(localSbo.get().getDeep() == 0){
             localSbo.get().commit();
         }
-        logger.info("after1");
+        //logger.info("after1");
     }
 }
