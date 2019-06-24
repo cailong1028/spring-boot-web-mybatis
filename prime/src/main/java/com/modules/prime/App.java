@@ -12,6 +12,8 @@ public class App implements Launcher {
 
     @Override
     public void run() {
-        logger.info("aaaaa");
+        for(Object obj: Context.services.values()){
+            logger.info("context one service: %s", obj.getClass().getName());
+        }
     }
 }

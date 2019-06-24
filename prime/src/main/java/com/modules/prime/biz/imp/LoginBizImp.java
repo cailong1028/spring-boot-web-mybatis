@@ -1,5 +1,6 @@
 package com.modules.prime.biz.imp;
 
+import com.modules.prime.annotation.Service;
 import com.modules.prime.biz.BizHandler;
 import com.modules.prime.biz.LoginBiz;
 import com.modules.prime.dao.DaoHandler;
@@ -10,6 +11,7 @@ import com.modules.prime.log.LoggerFactory;
 import java.lang.reflect.Proxy;
 import java.util.List;
 
+@Service
 public class LoginBizImp implements LoginBiz {
     private static final transient Logger logger = LoggerFactory.getLogger(LoginBizImp.class);
     @Override
@@ -53,4 +55,4 @@ public class LoginBizImp implements LoginBiz {
         }
     }
 }
-class AAAA{}
+

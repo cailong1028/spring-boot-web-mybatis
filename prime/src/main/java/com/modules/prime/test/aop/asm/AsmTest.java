@@ -4,13 +4,26 @@ import com.sun.xml.internal.ws.org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import static com.sun.xml.internal.ws.org.objectweb.asm.Opcodes.*;
 
 public class AsmTest {
     public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InvocationTargetException, IOException, InterruptedException {
-        new Account();
-        new SecureAccountGenerator().generateSecureAccount("com.modules.prime.test.aop.asm.Account").operation();
-    }
+        //new Account().operation();
+        System.out.println("--------------------");
+        Account account = new SecureAccountGenerator().generateSecureAccount("com.modules.prime.test.aop.asm.Account");
+        account.operation("");
+        Method[] methods = account.getClass().getDeclaredMethods();
+        for(Method method:methods){
+            if(method.getName().equals("add1")){
+                System.out.println(method.toString());
+                method.invoke(Account.class);
 
+            }
+            //System.out.println(method.getName());
+        }
+    }
 }
 
 class  AddSecurityCheckClassAdapter extends ClassAdapter{
@@ -86,6 +99,18 @@ class SecureAccountGenerator {
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             ClassAdapter classAdapter = new AddSecurityCheckClassAdapter(cw);
             cr.accept(classAdapter, ClassReader.SKIP_DEBUG);
+
+            //新增一个方法
+            //MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "add1", "([Ljava/lang/String;)V", null, null);
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "add1", "()V", null, null);
+            mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+            mv.visitLdcInsn("this is add method print!");
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+            mv.visitInsn(RETURN);
+            mv.visitMaxs(0, 0);
+            mv.visitEnd();
+
+
             byte[] data = cw.toByteArray();
             secureAccountClass = classLoader.defineClassFromClassFile(
                     className+"$EnhancedByASM",data);
@@ -135,5 +160,14 @@ class AccessClassAdapter extends ClassAdapter{
 }*/
 
 
+//https://www.ibm.com/developerworks/cn/java/j-lo-asm30/
+
+/*ClassWriter  classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+ClassAdaptor delLoginClassAdaptor = new DelLoginClassAdapter(classWriter);
+ClassAdaptor accessClassAdaptor = new AccessClassAdaptor(delLoginClassAdaptor);
+
+ClassReader classReader = new ClassReader(strFileName);
+classReader.accept(classAdapter, ClassReader.SKIP_DEBUG);*/
 
 
+//https://blog.csdn.net/cn_yaojin/article/details/81033957

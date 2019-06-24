@@ -1,9 +1,16 @@
 package com.modules.prime;
 
+import com.modules.prime.annotation.Autowired;
+import com.modules.prime.annotation.Component;
+import com.modules.prime.annotation.Service;
+import com.modules.prime.biz.BizHandler;
+import com.modules.prime.biz.imp.LoginBizImp;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
+import sun.jvm.hotspot.oops.FieldVisitor;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -41,10 +48,58 @@ public class LauncherHandler implements InvocationHandler {
         List<String> classNames = new ArrayList<>();
         classNames = scan(realPath, classNames);
 
+        List<Class<?>> daos = new ArrayList<>();
+        List<Class<?>> services = new ArrayList<>();
+        List<Class<?>> components = new ArrayList<>();
         for(String oneName:classNames){
-            logger.info(oneName);
+            try {
+                Class<?> aClass = Class.forName(oneName);
+                if(aClass.getAnnotation(Service.class) != null){
+                    services.add(aClass);
+                }
+                if(aClass.getAnnotation(Component.class) != null){
+                    components.add(aClass);
+                }
+            } catch (ClassNotFoundException e) {
+                logger.error(e);
+                e.printStackTrace();
+            }
         }
-        logger.info(String.valueOf(classNames.size()));
+        for(Class<?> oneService:services){
+            logger.debug("scan one service: [%s]", oneService.getName());
+            Object serviceObject = Proxy.newProxyInstance(LauncherHandler.class.getClassLoader(), oneService.getInterfaces(), new BizHandler(oneService));
+            Context.addService(oneService.getName(), serviceObject);
+        }
+        for(Class<?> oneComponent:components){
+            logger.debug("scan one component: [%s]", oneComponent.getName());
+            try {
+                Object componentObject = oneComponent.newInstance();
+                //Field[] fields = oneComponent.getFields();
+                Field[] fields = oneComponent.getDeclaredFields();
+                for(Field oneField: fields){
+                    if(oneField.getAnnotation(Autowired.class) != null){
+                        //Class<?> oneFieldClass = oneField.getClass();
+                        Class<?> oneFieldType = oneField.getType();
+                        String oneFieldTypeName = oneFieldType.getName();
+                        String fieldName = oneField.getName();
+                        Object service = Context.getService(oneFieldTypeName);
+                        if(service == null){
+                            logger.error("init Component [%s] FieldType [%s] FieldName [%s] failed", oneComponent.getName(), oneFieldTypeName, fieldName);
+                        }
+
+                        //oneFieldType.getDeclaredMethods()
+                        //oneComponent.getMethod("set");
+                    }
+                }
+                Context.addComponent(oneComponent.getName(), componentObject);
+            } catch (InstantiationException e) {
+                logger.error(e);
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                logger.error(e);
+                e.printStackTrace();
+            }
+        }
     }
 
     private List<String> scan(String path, List<String> names){
@@ -77,7 +132,7 @@ public class LauncherHandler implements InvocationHandler {
                 }
                 scan(dir, names);
             }else{
-                logger.info("非class文件: [%s]", oneName);
+                //logger.debug("not a class: [%s]", oneName);
             }
         }
         return names;
@@ -92,7 +147,7 @@ public class LauncherHandler implements InvocationHandler {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] args) {
 
         if(method.getName().equals("run")){
             beforLaunch();

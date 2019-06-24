@@ -13,7 +13,7 @@ public class ICPropertyUtil {
         Properties properties = new Properties();
         try {
             properties.load(is);
-            log.logInfo("load properties done");
+            //log.logInfo("load properties done");
         } catch (IOException e) {
             e.printStackTrace();
         }

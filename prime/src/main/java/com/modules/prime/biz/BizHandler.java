@@ -12,7 +12,7 @@ public class BizHandler implements InvocationHandler {
 
     public static ThreadLocal<SBo> localSbo = new ThreadLocal<>();
 
-    LoginBiz biz;
+    Biz biz;
     private Class<?> bizType;
 
     public BizHandler(Class<?> c){

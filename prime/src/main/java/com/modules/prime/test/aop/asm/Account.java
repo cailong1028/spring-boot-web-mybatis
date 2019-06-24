@@ -5,7 +5,7 @@ public class Account {
     public Account(){
 
     }
-    public void operation() {
+    public void operation(String a) {
         System.out.println("operation...");
         //TODO real operation
     }
