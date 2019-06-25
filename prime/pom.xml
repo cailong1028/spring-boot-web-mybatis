@@ -33,6 +33,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <junit.version>4.12</junit.version>
+        <JAVA_HOME>/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home</JAVA_HOME>
     </properties>
     <dependencies>
         <dependency>
@@ -113,6 +114,9 @@
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <verbose>false</verbose>
                     <showWarnings>false</showWarnings>
+                    <compilerArguments>
+                        <bootclasspath>${JAVA_HOME}/jre/lib/rt.jar</bootclasspath>
+                    </compilerArguments>
                 </configuration>
             </plugin>
             <plugin>
@@ -120,7 +124,7 @@
                 <version>2.22.1</version>
                 <configuration>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
-                    <skipTests>false</skipTests>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
         </plugins>

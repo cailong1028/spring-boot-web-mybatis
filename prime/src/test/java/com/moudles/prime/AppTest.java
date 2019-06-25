@@ -138,22 +138,21 @@ public class AppTest {
 
     @Test
     public void IOUtilTest() throws FileNotFoundException {
-        String filePath = "c:/Users/cl/Desktop/_号.txt";
+        String filePath = "/Users/bqj/Desktop/d.txt";
         byte[] bytes = IOUtil.readByteArray(filePath);
         assertNotEquals(1, bytes.length);
         InputStream is = new FileInputStream(filePath);
         byte[] bytes1 = IOUtil.readByteArray(is);
         assertNotEquals(1, bytes1.length);
 
-        IOUtil.writeFile(bytes, "c:/Users/cl/Desktop/a.txt");
+        IOUtil.writeFile(bytes, "/Users/bqj/Desktop/a.txt");
         assertTrue(true);
-        IOUtil.writeFile(bytes1, "c:/Users/cl/Desktop/b.txt");
+        IOUtil.writeFile(bytes1, "/Users/bqj/Desktop/b.txt");
         assertTrue(true);
-        IOUtil.writeFile("这个一个系统简介__123abc谢谢", "c:/Users/cl/Desktop/c.txt");
+        IOUtil.writeFile("这个一个系统简介__123abc谢谢", "/Users/bqj/Desktop/c.txt");
         assertTrue(true);
     }
 
-    @Test
     public void VolatileTest(){
         int loop = 100;
         int times = 10000;

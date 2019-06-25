@@ -13,7 +13,6 @@ public class BizHandler implements InvocationHandler {
     public static ThreadLocal<SBo> localSbo = new ThreadLocal<>();
 
     Biz biz;
-    private Class<?> bizType;
 
     public BizHandler(Class<?> c){
         Class<?> bizInft = null;
@@ -36,8 +35,6 @@ public class BizHandler implements InvocationHandler {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
-        //BoSession boSession = c.getAnnotation(BoSession.class);
-
     }
 
     /**
@@ -87,8 +84,6 @@ public class BizHandler implements InvocationHandler {
      */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
-
-        //BoSession boSession = method.getAnnotation(BoSession.class);
         Class<?> invokerType = this.biz.getClass();
         beforeInvoke(invokerType, method);
         Object ret = null;
@@ -105,13 +100,6 @@ public class BizHandler implements InvocationHandler {
     }
 
     private void beforeInvoke(Class<?> invokerType, Method method){
-        //判定初次进入bo方法还是多次进入
-//        if(null == boSession){
-//            sbo = new SBo();
-//        }else{
-//            sbo = new SBo(boSession.value());
-//        }
-        logger.info("before1");
         SBo _sbo = localSbo.get();
         if(null == _sbo || !_sbo.isValid()){
             localSbo.set(new SBo());
@@ -122,11 +110,9 @@ public class BizHandler implements InvocationHandler {
     }
 
     private void afterInvoke(Class<?> invokerType, Method method){
-        //判定方法调用最后的终结
         localSbo.get().deepReduce(invokerType, method);
         if(localSbo.get().getDeep() == 0){
             localSbo.get().commit();
         }
-        //logger.info("after1");
     }
 }

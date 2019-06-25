@@ -3,22 +3,15 @@ package com.modules.prime.component;
 import com.modules.prime.annotation.Autowired;
 import com.modules.prime.annotation.Component;
 import com.modules.prime.biz.LoginBiz;
-import com.modules.prime.biz.imp.LoginBizImp;
 
 @Component
 public class LoginComponent {
     @Autowired
-    private LoginBizImp loginBiz;
+    private LoginBiz loginBiz;
 
     public void login(){
         loginBiz.getSession();
+        System.out.println("111-====sdfs=df=sd=f=sdf=s=df=s=df=sd=f=");
     }
 
-    public LoginBiz getLoginBiz() {
-        return loginBiz;
-    }
-
-    public void setLoginBiz(LoginBiz loginBiz) {
-        this.loginBiz = (LoginBizImp) loginBiz;
-    }
 }

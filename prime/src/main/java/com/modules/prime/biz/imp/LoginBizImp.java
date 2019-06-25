@@ -27,7 +27,6 @@ public class LoginBizImp implements LoginBiz {
 
     @Override
     public void getInfo(){
-        logger.info("begin getInfo");
         LoginDao loginDao = (LoginDao) Proxy.newProxyInstance(LoginDao.class.getClassLoader(), new Class[]{LoginDao.class}, new DaoHandler(LoginDao.class));;
         List list = loginDao.login("cl2");
 //        logger.info("query list size %d", list.size());

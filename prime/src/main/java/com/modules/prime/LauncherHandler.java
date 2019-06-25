@@ -3,17 +3,15 @@ package com.modules.prime;
 import com.modules.prime.annotation.Autowired;
 import com.modules.prime.annotation.Component;
 import com.modules.prime.annotation.Service;
+import com.modules.prime.aop.asm.ChangeCurrentClazz;
+import com.modules.prime.aop.asm.GetterSetterGenerator;
 import com.modules.prime.biz.BizHandler;
-import com.modules.prime.biz.imp.LoginBizImp;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
-import sun.jvm.hotspot.oops.FieldVisitor;
+import jdk.internal.org.objectweb.asm.Opcodes;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +37,7 @@ public class LauncherHandler implements InvocationHandler {
         String resourcePath = packageName.replaceAll("\\.", File.separator);
         URL packageUrl = LauncherHandler.class.getClassLoader().getResource(resourcePath.equals(File.separator) ? "" : resourcePath);
         if(packageUrl == null){
-            logger.warn("未发现扫描类");
+            logger.warn("scan package [%s] is null", packageUrl.getFile());
             return;
         }
         String packagePath = packageUrl.getFile();
@@ -66,37 +64,70 @@ public class LauncherHandler implements InvocationHandler {
             }
         }
         for(Class<?> oneService:services){
+            //TODO 暂时只允许service继承一个接口
+            Class[] intfs = oneService.getInterfaces();
+            if(intfs.length != 1){
+                logger.error("service [%s] should only implements one interface, but not is [%d], init fail", oneService.getName(), intfs.length);
+                continue;
+            }
             logger.debug("scan one service: [%s]", oneService.getName());
             Object serviceObject = Proxy.newProxyInstance(LauncherHandler.class.getClassLoader(), oneService.getInterfaces(), new BizHandler(oneService));
-            Context.addService(oneService.getName(), serviceObject);
+            //Context.addService(oneService.getName(), serviceObject);
+            Context.addService(intfs[0].getName(), serviceObject);
         }
         for(Class<?> oneComponent:components){
             logger.debug("scan one component: [%s]", oneComponent.getName());
             try {
-                Object componentObject = oneComponent.newInstance();
-                //Field[] fields = oneComponent.getFields();
-                Field[] fields = oneComponent.getDeclaredFields();
-                for(Field oneField: fields){
-                    if(oneField.getAnnotation(Autowired.class) != null){
-                        //Class<?> oneFieldClass = oneField.getClass();
-                        Class<?> oneFieldType = oneField.getType();
-                        String oneFieldTypeName = oneFieldType.getName();
-                        String fieldName = oneField.getName();
-                        Object service = Context.getService(oneFieldTypeName);
-                        if(service == null){
-                            logger.error("init Component [%s] FieldType [%s] FieldName [%s] failed", oneComponent.getName(), oneFieldTypeName, fieldName);
-                        }
+                GetterSetterGenerator getterSetterGenerator = new GetterSetterGenerator();
+                Class newOneComponent = getterSetterGenerator.generateGetterSetter(oneComponent);
+                //原类，不是newOneComponent
+                ChangeCurrentClazz changeFieldModifier = new ChangeCurrentClazz(oneComponent);
 
-                        //oneFieldType.getDeclaredMethods()
-                        //oneComponent.getMethod("set");
+                Object componentObject = newOneComponent.newInstance();
+                //初始化(setField) Autowired filed
+                Field[] fields = newOneComponent.getDeclaredFields();
+                for(Field oneField:fields){
+                    if(oneField.getAnnotation(Autowired.class) != null){
+
+                        Class fieldType = oneField.getType();
+                        String fieldName = oneField.getName();
+
+                        //修改原类field modifier
+                        changeFieldModifier.changeFieldModifier(fieldName, Opcodes.ACC_PROTECTED);
+                        //重新加载修改的class
+                        //oneComponent = LauncherHandler.class.getClassLoader().loadClass(oneComponent.getName());
+                        //LauncherHandler.class.getClassLoader().cl
+                        oneComponent = Class.forName(oneComponent.getName());
+                        String beanClassName = fieldType.getName();
+                        String setMethodName = "set"+GetterSetterGenerator.upperCaseFirstChar(fieldName);
+                        Method setMethod = newOneComponent.getMethod(setMethodName, fieldType);
+                        if(setMethod == null){
+                            logger.error("no such set method [%s:%s] found", newOneComponent.getName(), setMethodName);
+                            continue;
+                        }
+                        Object beanInitInstance = Context.getService(beanClassName);
+                        if(beanInitInstance == null){
+                            logger.error("no such init instance [%s] found ", newOneComponent.getName());
+                            continue;
+                        }
+                        //beanInitInstance 是接口类型
+                        setMethod.invoke(componentObject, beanInitInstance);
                     }
                 }
+
                 Context.addComponent(oneComponent.getName(), componentObject);
             } catch (InstantiationException e) {
                 logger.error(e);
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
                 logger.error(e);
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                logger.error(e);
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
@@ -105,6 +136,7 @@ public class LauncherHandler implements InvocationHandler {
     private List<String> scan(String path, List<String> names){
         if(path.endsWith(".jar")){
             //TODO 加载jar文件待处理
+            logger.warn("jar file scan escape!");
             return names;
         }
         String prefix = path.substring(rootPath.length()).replaceAll(File.separator, "\\.");
