@@ -3,15 +3,19 @@ package com.modules.prime.component;
 import com.modules.prime.annotation.Autowired;
 import com.modules.prime.annotation.Component;
 import com.modules.prime.biz.LoginBiz;
+import com.modules.prime.log.Logger;
+import com.modules.prime.log.LoggerFactory;
 
 @Component
 public class LoginComponent {
+
+    public static transient Logger logger = LoggerFactory.getLogger(LoginComponent.class);
+
     @Autowired
-    private LoginBiz loginBiz;
+    public LoginBiz loginBiz;
 
     public void login(){
-        loginBiz.getSession();
-        System.out.println("111-====sdfs=df=sd=f=sdf=s=df=s=df=sd=f=");
+        loginBiz.login();
     }
 
 }

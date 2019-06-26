@@ -1,5 +1,6 @@
 package com.modules.prime.aop.asm;
 
+import com.modules.prime.Context;
 import com.modules.prime.annotation.Autowired;
 import com.modules.prime.component.LoginComponent;
 import com.sun.xml.internal.ws.org.objectweb.asm.*;
@@ -7,33 +8,44 @@ import com.sun.xml.internal.ws.org.objectweb.asm.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.sun.xml.internal.ws.org.objectweb.asm.Opcodes.*;
 import static com.sun.xml.internal.ws.org.objectweb.asm.Opcodes.RETURN;
 
 //asm 添加一个method示例
 public class GetterSetterGenerator {
-    String enhancedSuperName;
-    String suffix = "$EnhancedByASM";
     public Class generateGetterSetter(Class clazz){
         try {
             ClassReader cr = new ClassReader(clazz.getName());
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-            ClassAdapter classAdapter = new GeneratorClassAdapter(cw);
-            cr.accept(classAdapter, ClassReader.SKIP_DEBUG);
 
             Field[] fields = clazz.getDeclaredFields();
+            List<Field> autowiredFields = new ArrayList<>();
             for(Field oneField: fields){
                 if(oneField.getAnnotation(Autowired.class) != null){
-                    addGetSetMethod(cw, enhancedSuperName, oneField);
+                    autowiredFields.add(oneField);
                 }
             }
 
+            ClassAdapter classAdapter = new ChangeFieldModifierAdapter(cw, autowiredFields);
+            cr.accept(classAdapter, ClassReader.SKIP_DEBUG);
+
+            for(Field oneField: autowiredFields){
+                addGetSetMethod(cw, ((DefaultGeneratorClassAdapter)classAdapter).getEnhancedSuperName(), oneField);
+            }
+
             byte[] data = cw.toByteArray();
-            return new GeneratorClassLoader().defineClass(clazz.getName()+suffix, data);
+            Class retClass = Context.defaultGeneratorClassLoader.defineClass(clazz.getName()+DefaultGeneratorClassAdapter.suffix, data);
+//            ClassFileGenerator.writeByteCode(retClass, data);
+//            ClassLoader.getSystemClassLoader().loadClass(retClass.getName());
+            return retClass;
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        } /*catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }*/
         return null;
     }
 
@@ -55,7 +67,7 @@ public class GetterSetterGenerator {
         int[] loadAndReturnOf = loadAndReturnOf(typeof);
 
         //add field
-        cw.visitField(ACC_PRIVATE, "__"+fieldName+"__", typeof, null, 0).visitEnd();
+        //cw.visitField(ACC_PRIVATE, "__"+fieldName+"__", typeof, null, 0).visitEnd();
 
         //add getMethod
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, getMethodName, getof, null, null);
@@ -75,6 +87,10 @@ public class GetterSetterGenerator {
         mv.visitInsn(RETURN);
         mv.visitMaxs(3, 3);
         mv.visitEnd();
+    }
+
+    private void changeFieldModify(ClassWriter cw, String fieldName, int modifier){
+
     }
 
     public static String upperCaseFirstChar(String str){
@@ -101,55 +117,47 @@ public class GetterSetterGenerator {
         }
     }
 
-    private class GeneratorClassLoader extends ClassLoader{
-        private Class defineClass(String className, byte[] file){
-            return defineClass(className, file, 0, file.length);
-        }
-    }
-
-    //ClassAdapter时序 visit visitField visitMethod visitEnd
-    private class GeneratorClassAdapter extends ClassAdapter{
-
-        public GeneratorClassAdapter(ClassVisitor cv) {
+    private class ChangeFieldModifierAdapter extends DefaultGeneratorClassAdapter{
+        private List<Field> fields;
+        public ChangeFieldModifierAdapter(ClassVisitor cv, List<Field> fields) {
             super(cv);
+            this.fields = fields;
         }
 
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces){
-            String enhancedName = name + suffix;  // 改变类命名
-            enhancedSuperName = name; // 改变父类，这里是”Account”
-            super.visit(version, access, enhancedName, signature, enhancedSuperName, interfaces);
+        public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+            if (containsField(fields, name)) {
+                return cv.visitField(Opcodes.ACC_PUBLIC, name, desc, signature, value);
+            }
+            return cv.visitField(access, name, desc, signature, value);
         }
 
-        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions){
-            MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-            MethodVisitor wrapperMv = mv;
-            if(mv != null){
-                if(name.equals("<init>")) {
-                    wrapperMv = new ChangeToChildConstructorMethodAdapter(mv, enhancedSuperName);
+//        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions){
+//            MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+//            MethodVisitor wrapperMv = mv;
+//            if(mv != null){
+//                if(name.equals("<init>")) {
+//                    wrapperMv = new ChangeToChildConstructorMethodAdapter(mv, super.getEnhancedSuperName());
+//                    return wrapperMv;
+//                }
+//                return null;
+//            }
+//            return null;
+//        }
+        private boolean containsField(List<Field> fields, String fieldName){
+            for(Field oneField:fields){
+                if(oneField.getName().equals(fieldName)){
+                    return true;
                 }
-                return wrapperMv;
             }
-            return null;
-        }
-    }
-    class ChangeToChildConstructorMethodAdapter extends MethodAdapter {
-        private String superClassName;
-
-        public ChangeToChildConstructorMethodAdapter(MethodVisitor mv,
-                                                     String superClassName) {
-            super(mv);
-            this.superClassName = superClassName;
+            return false;
         }
 
-        public void visitMethodInsn(int opcode, String owner, String name,
-                                    String desc) {
-            // 调用父类的构造函数时
-            if (opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
-                owner = superClassName;
-            }
-            super.visitMethodInsn(opcode, owner, name, desc);// 改写父类为 superClassName
+        @Override
+        public void visitEnd() {
+            cv.visitEnd();
         }
     }
+
     public static void main(String[] args) throws IllegalAccessException, InstantiationException {
         Class clazz = new GetterSetterGenerator().generateGetterSetter(LoginComponent.class);
         Method[] methods = clazz.getDeclaredMethods();

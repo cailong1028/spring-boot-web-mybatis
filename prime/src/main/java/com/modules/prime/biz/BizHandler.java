@@ -8,7 +8,7 @@ import java.lang.reflect.*;
 
 public class BizHandler implements InvocationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(BizHandler.class);
+    public static Logger logger = LoggerFactory.getLogger(BizHandler.class);
 
     public static ThreadLocal<SBo> localSbo = new ThreadLocal<>();
 
@@ -29,7 +29,7 @@ public class BizHandler implements InvocationHandler {
             return;
         }
         try {
-            this.biz = (LoginBiz) c.newInstance();
+            this.biz = (Biz) c.newInstance();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -90,8 +90,10 @@ public class BizHandler implements InvocationHandler {
         try {
             ret = method.invoke(this.biz, args);
         } catch (IllegalAccessException e) {
+            e.printStackTrace();
             logger.error(e);
         } catch (InvocationTargetException e) {
+            e.printStackTrace();
             logger.error(e);
         }finally {
             afterInvoke(invokerType, method);

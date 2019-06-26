@@ -1,4 +1,4 @@
-package com.modules.prime.aop.asm.reflect;
+package com.modules.prime.aop.reflect;
 
 import java.io.File;
 import java.io.FileInputStream;

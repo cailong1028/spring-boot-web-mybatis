@@ -26,4 +26,14 @@ public class App implements Launcher {
 //        loginComponent.login();
         ((LoginComponent)Context.getComponent(LoginComponent.class)).login();
     }
+
+    @Override
+    public void beforeRun() {
+
+    }
+
+    @Override
+    public void afterRun() {
+
+    }
 }

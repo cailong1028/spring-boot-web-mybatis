@@ -46,12 +46,25 @@ public class DaoHandler implements InvocationHandler {
 
 class DaoWrapper {
     public static Object wrap(Class<?> daoClazz){
-        Object obj = Proxy.newProxyInstance(daoClazz.getClassLoader(), new Class[]{daoClazz}, new DaoHandler(daoClazz));
+        Object obj = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{daoClazz}, new DaoHandler(daoClazz));
         return obj;
     }
 }
-//class BizWrapperImp extends BizWrapper{
-//    public wrap(Class<?> impClazz){
-//
-//    }
-//}
+
+//参考
+@Deprecated
+class LoginDaoWrapper {
+    public static <T> T getWrapper(Class<?> Handler, Class<?> BizImp) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Constructor constructor = Handler.getConstructor(BizImp);
+//        Object obj = java.lang.reflect.Proxy.newProxyInstance(
+//                Biz.getClassLoader(),
+//                BizImp.getInterfaces(),
+//                (InvocationHandler) constructor.newInstance(BizImp.newInstance()));
+        T proxy = (T) java.lang.reflect.Proxy.newProxyInstance(
+                BizImp.getClassLoader(),
+                BizImp.getInterfaces(),
+                (InvocationHandler) constructor.newInstance(BizImp.newInstance()));
+        return proxy;
+    }
+
+}
