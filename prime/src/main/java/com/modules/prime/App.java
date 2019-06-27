@@ -7,8 +7,6 @@ import com.modules.prime.log.LoggerFactory;
 
 public class App implements Launcher {
 
-    private String test;
-
     private static final transient Logger logger = LoggerFactory.getLogger(App.class);
     public static void main(String[] args) {
         LauncherHandler.handle(App.class);
@@ -24,7 +22,7 @@ public class App implements Launcher {
         }
 //        LoginComponent loginComponent = new LoginComponent();
 //        loginComponent.login();
-        ((LoginComponent)Context.getComponent(LoginComponent.class)).login();
+        ((LoginComponent)Context.getComponent(LoginComponent.class)).getSession();
     }
 
     @Override

@@ -14,8 +14,8 @@ public class LoginComponent {
     @Autowired
     public LoginBiz loginBiz;
 
-    public void login(){
-        loginBiz.login();
+    public void getSession(){
+        loginBiz.getSession();
     }
 
 }

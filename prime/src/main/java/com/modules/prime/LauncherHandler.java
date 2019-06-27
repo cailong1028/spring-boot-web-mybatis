@@ -86,10 +86,10 @@ public class LauncherHandler implements InvocationHandler {
                 continue;
             }
             logger.debug("scan one service: [%s]", oneService.getName());
-//            Class<?> newClass = (Class<?>) do1(oneService, "dao")[1];
-            Object serviceObject = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), oneService.getInterfaces(), new BizHandler(oneService));
+            Class<?> newClass = (Class<?>) do1(oneService, "dao")[1];
+            Object serviceObject = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), oneService.getInterfaces(), new BizHandler(newClass));
             //Context.addService(oneService.getName(), serviceObject);
-
+            //service bean name取接口
             Context.addService(intfs[0].getName(), serviceObject);
         }
         for(Class<?> oneComponent:components){

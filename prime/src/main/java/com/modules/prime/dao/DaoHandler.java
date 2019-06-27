@@ -12,12 +12,12 @@ import java.util.List;
 public class DaoHandler implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(DaoHandler.class);
-    private SBo sbo = BizHandler.localSbo.get();
     public DaoHandler(Class<?> c){
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
+        SBo sbo = BizHandler.localSbo.get();
         Sql sqlAnno = method.getAnnotation(Sql.class);
         String sql = sqlAnno.value();
         beforeInvoke();
