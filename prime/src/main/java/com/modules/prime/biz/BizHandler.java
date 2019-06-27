@@ -14,7 +14,7 @@ public class BizHandler implements InvocationHandler {
 
     Biz biz;
 
-    public BizHandler(Class<?> c){
+    public BizHandler(Class<?> c, Object initBean){
         Class<?> bizInft = null;
         //Type[] intfs = c.getInterfaces();
         Class<?>[] intfs = c.getInterfaces();
@@ -29,7 +29,13 @@ public class BizHandler implements InvocationHandler {
             return;
         }
         try {
-            this.biz = (Biz) c.newInstance();
+            if(initBean != null){
+                this.biz = (Biz) initBean;
+            }else{
+                this.biz = (Biz) c.newInstance();
+            }
+
+
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {

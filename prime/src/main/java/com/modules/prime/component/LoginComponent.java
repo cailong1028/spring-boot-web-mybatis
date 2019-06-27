@@ -3,6 +3,7 @@ package com.modules.prime.component;
 import com.modules.prime.annotation.Autowired;
 import com.modules.prime.annotation.Component;
 import com.modules.prime.biz.LoginBiz;
+import com.modules.prime.biz.UserBiz;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
 
@@ -14,8 +15,12 @@ public class LoginComponent {
     @Autowired
     public LoginBiz loginBiz;
 
+    @Autowired
+    protected UserBiz userBiz;
+
     public void getSession(){
         loginBiz.getSession();
+        userBiz.getUser();
     }
 
 }

@@ -73,7 +73,7 @@ public class LauncherHandler implements InvocationHandler {
         }
 
         for(Class<?> oneDao:daos){
-            Object daoObject = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{oneDao}, new DaoHandler(oneDao));
+            Object daoObject = Proxy.newProxyInstance(Context.defaultGeneratorClassLoader, new Class[]{oneDao}, new DaoHandler(oneDao));
             Context.addDao(oneDao.getName(), daoObject);
         }
 
@@ -86,8 +86,11 @@ public class LauncherHandler implements InvocationHandler {
                 continue;
             }
             logger.debug("scan one service: [%s]", oneService.getName());
-            Class<?> newClass = (Class<?>) do1(oneService, "dao")[1];
-            Object serviceObject = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), oneService.getInterfaces(), new BizHandler(newClass));
+
+            Object[] resolve = do1(oneService, "dao");
+            Object serviceBean = resolve[0];
+            Class<?> newClass = (Class<?>) resolve[1];
+            Object serviceObject = Proxy.newProxyInstance(Context.defaultGeneratorClassLoader, oneService.getInterfaces(), new BizHandler(newClass, serviceBean));
             //Context.addService(oneService.getName(), serviceObject);
             //service bean name取接口
             Context.addService(intfs[0].getName(), serviceObject);
@@ -99,10 +102,52 @@ public class LauncherHandler implements InvocationHandler {
                 logger.error("fail to init component: [%s] after ChangeFieldGenerator, will continue", oneComponent.getName());
             }
 
-            Context.addComponent(oneComponent.getName(), do1(oneComponent, "service")[0]);
+            Object componentBean = do1(oneComponent, "service")[0];
+            Context.addComponent(oneComponent.getName(), componentBean);
         }
     }
 
+    private List<String> scan(String path, List<String> names){
+        if(path.endsWith(".jar")){
+            //TODO 加载jar文件待处理
+            logger.warn("jar file scan escape!");
+            return names;
+        }
+        String prefix = path.substring(rootPath.length()).replaceAll(File.separator, "\\.");
+        prefix = prefix.startsWith(".") ? prefix.substring(1) : prefix;
+        File file = new File(path);
+        File[] subFiles = file.listFiles();
+        for(File oneFile:subFiles){
+            String oneName = oneFile.getName();
+            if(oneFile.isFile() && oneFile.getName().endsWith(".class")){
+
+                StringBuffer sb = new StringBuffer(prefix);
+                sb.append(".");
+                int index = oneName.indexOf(".");
+                if(index != -1){
+                    oneName = oneName.substring(0, index);
+                }
+                sb.append(oneName);
+                names.add(sb.toString());
+            }else if(oneFile.isDirectory()){
+                String dir = "";
+                if(path.endsWith(File.separator)){
+                    dir = path + oneName;
+                }else{
+                    dir = path+File.separator+oneName;
+                }
+                scan(dir, names);
+            }else{
+                //logger.debug("not a class: [%s]", oneName);
+            }
+        }
+        return names;
+    }
+
+    //todo 方式一
+    //使用asm方式生成带getter setter、修改了autowired field modifier的继承原类的新类的实例对象
+    //并使用Context.defaultGeneratorClassLoader加载，但是经过了双层类创建，proxy class调用super.field的时候调用到的是asm创建的新类
+    //需要在BizHandler中把带autowired的实例传递过去
     private Object[] do1(Class oneComponent, String type){
         Object[] ret = new Object[2];
         try {
@@ -163,42 +208,8 @@ public class LauncherHandler implements InvocationHandler {
         return ret;
     }
 
-    private List<String> scan(String path, List<String> names){
-        if(path.endsWith(".jar")){
-            //TODO 加载jar文件待处理
-            logger.warn("jar file scan escape!");
-            return names;
-        }
-        String prefix = path.substring(rootPath.length()).replaceAll(File.separator, "\\.");
-        prefix = prefix.startsWith(".") ? prefix.substring(1) : prefix;
-        File file = new File(path);
-        File[] subFiles = file.listFiles();
-        for(File oneFile:subFiles){
-            String oneName = oneFile.getName();
-            if(oneFile.isFile() && oneFile.getName().endsWith(".class")){
-
-                StringBuffer sb = new StringBuffer(prefix);
-                sb.append(".");
-                int index = oneName.indexOf(".");
-                if(index != -1){
-                    oneName = oneName.substring(0, index);
-                }
-                sb.append(oneName);
-                names.add(sb.toString());
-            }else if(oneFile.isDirectory()){
-                String dir = "";
-                if(path.endsWith(File.separator)){
-                    dir = path + oneName;
-                }else{
-                    dir = path+File.separator+oneName;
-                }
-                scan(dir, names);
-            }else{
-                //logger.debug("not a class: [%s]", oneName);
-            }
-        }
-        return names;
-    }
+    //todo 方式二
+    //bean类默认自带getter setter，context bean中保存的是原类的instance
 
     private String getPath(String url){
         int index = url.indexOf("!");
