@@ -58,7 +58,7 @@ public class AppTest {
 
     @Test
     public void loggerFactoryTest(){
-                LoggerFactory.setWriter("/Users/bqj/Desktop/d.txt");
+                //LoggerFactory.setWriter("/Users/bqj/Desktop/d.txt");
         long begin = System.currentTimeMillis();
         Logger logger = LoggerFactory.getLogger(LoggerFactory.class);
         Logger logger2 = LoggerFactory.getLogger(Logger.class);

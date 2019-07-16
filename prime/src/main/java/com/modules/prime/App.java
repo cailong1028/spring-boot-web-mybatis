@@ -15,10 +15,10 @@ public class App implements Launcher {
     @Override
     public void run() {
         for(Object obj: Context.services.values()){
-            logger.info("context one service: %s", obj instanceof LoginBiz);
+            logger.info("context one service 服务: %s", obj instanceof LoginBiz);
         }
         for(Object obj: Context.components.values()){
-            logger.info("context one component: %s", obj instanceof LoginComponent);
+            logger.info("context one component 组件: %s", obj instanceof LoginComponent);
         }
 //        LoginComponent loginComponent = new LoginComponent();
 //        loginComponent.login();

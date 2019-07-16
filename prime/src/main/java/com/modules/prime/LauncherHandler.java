@@ -7,16 +7,20 @@ import com.modules.prime.annotation.Service;
 import com.modules.prime.aop.asm.GetterSetterGenerator;
 import com.modules.prime.biz.BizHandler;
 import com.modules.prime.dao.DaoHandler;
-import com.modules.prime.dao.LoginDao;
 import com.modules.prime.log.Logger;
 import com.modules.prime.log.LoggerFactory;
+import com.modules.prime.util.AppProperties;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 public class LauncherHandler implements InvocationHandler {
     private static final transient Logger logger = LoggerFactory.getLogger(LauncherHandler.class);
@@ -25,26 +29,36 @@ public class LauncherHandler implements InvocationHandler {
 
     private String rootPath;
 
+    private String packageName;
+
     private LauncherHandler(Object o) {
         app = (Launcher)o;
     }
 
     private void beforLaunch() {
-
-        doScan(".");
+        String scanPackage = AppProperties.get("scan.package");
+        if(scanPackage != null){
+            packageName = scanPackage;
+            doScan();
+        }
 
     }
 
-    private void doScan(String packageName){
+    private void doScan(){
         String resourcePath = packageName.replaceAll("\\.", File.separator);
-        URL packageUrl = ClassLoader.getSystemClassLoader().getResource(resourcePath.equals(File.separator) ? "" : resourcePath);
+        String _path = resourcePath.equals(File.separator) ? "" : resourcePath;
+        URL packageUrl = ClassLoader.getSystemClassLoader().getResource(_path);
+//        URL packageUrl = LauncherHandler.class.getClassLoader().getResource(File.separator);
         if(packageUrl == null){
-            logger.warn("scan package [%s] is null", packageUrl.getFile());
+
+            logger.warn("scan package [%s] is null", _path);
             return;
         }
+        System.out.println(packageUrl.getFile());
         String packagePath = packageUrl.getFile();
-        rootPath = packagePath.substring(0, packagePath.lastIndexOf(resourcePath));
         String realPath = getPath(packageUrl.getFile());
+        rootPath = packagePath.substring(0, packagePath.lastIndexOf(resourcePath));
+
         List<String> classNames = new ArrayList<>();
         classNames = scan(realPath, classNames);
 
@@ -53,7 +67,10 @@ public class LauncherHandler implements InvocationHandler {
         List<Class<?>> components = new ArrayList<>();
         for(String oneName:classNames){
             try {
-                Class<?> aClass = Class.forName(oneName);
+                //Class<?> aClass = Class.forName(oneName);
+                logger.debug("begin load class [%s]", oneName);
+                Class<?> aClass = ClassLoader.getSystemClassLoader().loadClass(oneName);
+
                 if(aClass.getAnnotation(Dao.class) != null){
                     daos.add(aClass);
                     continue;
@@ -107,10 +124,25 @@ public class LauncherHandler implements InvocationHandler {
         }
     }
 
+    private String getRootPath(URL url) {
+        String fileUrl = url.getFile();
+        int pos = fileUrl.indexOf('!');
+
+        if (-1 == pos) {
+            return fileUrl;
+        }
+
+        return fileUrl.substring(5, pos);
+    }
+
     private List<String> scan(String path, List<String> names){
         if(path.endsWith(".jar")){
-            //TODO 加载jar文件待处理
-            logger.warn("jar file scan escape!");
+            logger.info("jar file scan");
+            try {
+                names = readFromJarFile(path, packageName);
+            } catch (IOException e) {
+                logger.error(e);
+            }
             return names;
         }
         String prefix = path.substring(rootPath.length()).replaceAll(File.separator, "\\.");
@@ -142,6 +174,25 @@ public class LauncherHandler implements InvocationHandler {
             }
         }
         return names;
+    }
+
+    private List<String> readFromJarFile(String jarPath, String splashedPackageName) throws IOException {
+        logger.debug("从JAR包中读取类: %s", jarPath);
+        JarInputStream jarIn = new JarInputStream(new FileInputStream(jarPath));
+        JarEntry entry = jarIn.getNextJarEntry();
+        List<String> nameList = new ArrayList<>();
+        while (null != entry) {
+            String name = entry.getName().replaceAll(File.separator, ".");
+            logger.debug("one jar entry file name is %s", name);
+            if (name.startsWith(splashedPackageName) && name.endsWith(".class")) {
+                // 6 ==> ".class".length
+                nameList.add(name.substring(0, name.length() - 6));
+            }
+
+            entry = jarIn.getNextJarEntry();
+        }
+        logger.debug("jar file nameList size %d", nameList.size());
+        return nameList;
     }
 
     //todo 方式一
