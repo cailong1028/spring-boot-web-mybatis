@@ -54,7 +54,6 @@ public class LauncherHandler implements InvocationHandler {
             logger.warn("scan package [%s] is null", _path);
             return;
         }
-        System.out.println(packageUrl.getFile());
         String packagePath = packageUrl.getFile();
         String realPath = getPath(packageUrl.getFile());
         rootPath = packagePath.substring(0, packagePath.lastIndexOf(resourcePath));
@@ -68,7 +67,7 @@ public class LauncherHandler implements InvocationHandler {
         for(String oneName:classNames){
             try {
                 //Class<?> aClass = Class.forName(oneName);
-                logger.debug("begin load class [%s]", oneName);
+                //logger.debug("begin load class [%s]", oneName);
                 Class<?> aClass = ClassLoader.getSystemClassLoader().loadClass(oneName);
 
                 if(aClass.getAnnotation(Dao.class) != null){
@@ -90,10 +89,10 @@ public class LauncherHandler implements InvocationHandler {
         }
 
         for(Class<?> oneDao:daos){
+            logger.debug("scan one dao: [%s]", oneDao.getName());
             Object daoObject = Proxy.newProxyInstance(Context.defaultGeneratorClassLoader, new Class[]{oneDao}, new DaoHandler(oneDao));
             Context.addDao(oneDao.getName(), daoObject);
         }
-
 
         for(Class<?> oneService:services){
             //TODO 暂时只允许service继承一个接口
@@ -137,7 +136,7 @@ public class LauncherHandler implements InvocationHandler {
 
     private List<String> scan(String path, List<String> names){
         if(path.endsWith(".jar")){
-            logger.info("jar file scan");
+            logger.info("jar file [%s] scan", path);
             try {
                 names = readFromJarFile(path, packageName);
             } catch (IOException e) {
@@ -183,7 +182,7 @@ public class LauncherHandler implements InvocationHandler {
         List<String> nameList = new ArrayList<>();
         while (null != entry) {
             String name = entry.getName().replaceAll(File.separator, ".");
-            logger.debug("one jar entry file name is %s", name);
+            //logger.debug("one jar entry file name is %s", name);
             if (name.startsWith(splashedPackageName) && name.endsWith(".class")) {
                 // 6 ==> ".class".length
                 nameList.add(name.substring(0, name.length() - 6));

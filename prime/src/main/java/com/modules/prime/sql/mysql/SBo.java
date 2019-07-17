@@ -96,7 +96,8 @@ public class SBo {
     public void rollback(){
         if(poolConnection != null){
             poolConnection.rollback();
-            poolManager.releasePoolConnection(poolConnection);
+            //poolManager.releasePoolConnection(poolConnection);
+            poolManager.removePoolConnection(poolConnection);
             poolConnection = null;
         }
     }

@@ -177,15 +177,15 @@ final class PoolManager {
     boolean removePoolConnection(PoolConnection poolConnection){
         //workingPool.
         synchronized (connectionPool){
-            while(poolConnection != null){
+            if(poolConnection != null){
                 Connection connection = poolConnection.getConnection();
                 try {
                     connection.close();
                 } catch (SQLException e) {
-                    connection = null;
                     logger.error(e);
                 }finally {
                     connectionPool.remove(poolConnection.getId());
+                    logger.debug("connection [%s] remove, now %s", poolConnection.getId(), stateInfo());
                 }
             }
             connectionPool.notify();

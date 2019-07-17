@@ -186,13 +186,13 @@ public class LoggerFactory {
         if(!file.exists()){
             try {
                 file.createNewFile();
-                writer = file.getAbsolutePath();
             } catch (IOException e) {
                 e.printStackTrace();
                 messageList.addLast(e.getMessage());
                 System.exit(1);
             }
         }
+        writer = file.getAbsolutePath();
     }
 
     public int getLogLevel() {
