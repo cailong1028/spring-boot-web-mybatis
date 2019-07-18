@@ -38,10 +38,10 @@ public class LoggerFactory {
                     }
                 }
             }
-            if(properties.getProperty("file.encode") != null){
+            if(properties.getProperty("file.encode") != null && !properties.getProperty("file.encode").equals("")){
                 fileEncoding = properties.getProperty("file.encode");
             }
-            if(properties.getProperty("log.level") != null){
+            if(properties.getProperty("log.level") != null && !properties.getProperty("log.level").equals("")){
                 String _logLevel = properties.getProperty("log.level");
                 try{
                     logLevel = MessageType.valueOf(_logLevel.toUpperCase()).getCode();
@@ -49,7 +49,7 @@ public class LoggerFactory {
                     messageList.addLast(e.getMessage());
                 }
             }
-            if(properties.getProperty("log.path") != null){
+            if(properties.getProperty("log.path") != null && !properties.getProperty("log.path").equals("")){
                 String _logPath = properties.getProperty("log.path");
                 setWriter(_logPath);
             }

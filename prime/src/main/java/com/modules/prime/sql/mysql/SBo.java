@@ -33,8 +33,10 @@ public class SBo {
             poolConnection.setAutoCommit(false);
         } catch (TimeoutException e) {
             e.printStackTrace();
+            logger.error(e);
         } catch (SQLException e) {
             e.printStackTrace();
+            logger.error(e);
         }
     }
 

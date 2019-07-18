@@ -119,7 +119,7 @@ public class BizHandler implements InvocationHandler {
 
     private void afterInvoke(Class<?> invokerType, Method method){
         localSbo.get().deepReduce(invokerType, method);
-        if(localSbo.get().getDeep() == 0){
+        if(localSbo.get().getDeep() <= 0){
             localSbo.get().commit();
         }
     }
