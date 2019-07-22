@@ -11,25 +11,7 @@
     <groupId>com.modules</groupId>
     <artifactId>prime</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <profiles>
-        <profile>
-            <id>develop</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <file.encode>utf-8</file.encode>
-                <log.path></log.path>
-            </properties>
-        </profile>
-        <profile>
-            <id>production</id>
-            <properties>
-                <file.encode>utf-8</file.encode>
-                <log.path>/Users/bqj/Desktop/ff.txt</log.path>
-            </properties>
-        </profile>
-    </profiles>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -164,6 +146,46 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>develop</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <filters>
+                    <filter>profiles/develop.properties</filter>
+                </filters>
+            </build>
+            <!--<properties>
+                <file.encode>utf-8</file.encode>
+                <log.path></log.path>
+            </properties>-->
+        </profile>
+        <profile>
+            <id>test</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <filters>
+                    <filter>profiles/test.properties</filter>
+                </filters>
+            </build>
+        </profile>
+        <profile>
+            <id>production</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <filters>
+                    <filter>profiles/production.properties</filter>
+                </filters>
+            </build>
+        </profile>
+    </profiles>
 
     <repositories><!-- 代码库 -->
         <repository>
