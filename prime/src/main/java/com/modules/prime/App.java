@@ -22,7 +22,16 @@ public class App implements Launcher {
         }
 //        LoginComponent loginComponent = new LoginComponent();
 //        loginComponent.login();
-        ((LoginComponent)Context.getComponent(LoginComponent.class)).getSession();
+        for(int i = 0; i < 2; i++){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ((LoginComponent)Context.getComponent(LoginComponent.class)).getSession();
+                }
+            }).start();
+
+        }
+
     }
 
     @Override

@@ -22,7 +22,7 @@ final class PoolManager {
 
     private Map<String, PoolConnection> connectionPool = new HashMap<>();
 
-    private int maxSize = 2;
+    private int maxSize = 10;
     private int timeout = 5000;
     private int maxFreeTime = 15000;
     private int scanPeriod = 30000;

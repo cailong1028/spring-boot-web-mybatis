@@ -15,29 +15,22 @@ public class SBo {
 
     private int propagationDeep = 0;
 
-    Logger logger = LoggerFactory.getLogger(SBo.class);
+    public static Logger logger = LoggerFactory.getLogger(SBo.class);
     PoolManager poolManager = PoolManager.getInstance();
     PoolManager.PoolConnection poolConnection = null;
     Connection conn = null;
     int isolation = Connection.TRANSACTION_REPEATABLE_READ;
 
-    public SBo(){
+    public SBo() throws TimeoutException, SQLException {
         this(Connection.TRANSACTION_REPEATABLE_READ);
     }
 
-    public SBo(int isolation){
-        try {
-            this.isolation = isolation;
-            poolConnection = poolManager.getPoolConnection();
-            poolConnection.setIsolation(this.isolation);
-            poolConnection.setAutoCommit(false);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-            logger.error(e);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            logger.error(e);
-        }
+    public SBo(int isolation) throws TimeoutException, SQLException {
+        this.isolation = isolation;
+        poolConnection = poolManager.getPoolConnection();
+        poolConnection.setIsolation(this.isolation);
+        poolConnection.setAutoCommit(false);
+
     }
 
     public List<Map<String, Object>> query(String sql, Object... args){

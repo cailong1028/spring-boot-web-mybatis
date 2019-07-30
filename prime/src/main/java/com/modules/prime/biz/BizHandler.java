@@ -5,6 +5,8 @@ import com.modules.prime.log.LoggerFactory;
 import com.modules.prime.sql.mysql.SBo;
 
 import java.lang.reflect.*;
+import java.sql.SQLException;
+import java.util.concurrent.TimeoutException;
 
 public class BizHandler implements InvocationHandler {
 
@@ -91,23 +93,30 @@ public class BizHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
         Class<?> invokerType = this.biz.getClass();
-        beforeInvoke(invokerType, method);
         Object ret = null;
         try {
+            beforeInvoke(invokerType, method);
             ret = method.invoke(this.biz, args);
+            afterInvoke(invokerType, method);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
             logger.error(e);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
             logger.error(e);
-        }finally {
-            afterInvoke(invokerType, method);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            logger.error(e);
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            logger.error(e);
+        } finally {
+
         }
         return ret;
     }
 
-    private void beforeInvoke(Class<?> invokerType, Method method){
+    private void beforeInvoke(Class<?> invokerType, Method method) throws TimeoutException, SQLException {
         SBo _sbo = localSbo.get();
         if(null == _sbo || !_sbo.isValid()){
             localSbo.set(new SBo());
