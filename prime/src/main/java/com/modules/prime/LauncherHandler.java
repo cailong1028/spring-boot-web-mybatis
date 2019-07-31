@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.regex.Matcher;
 
 public class LauncherHandler implements InvocationHandler {
     private static final transient Logger logger = LoggerFactory.getLogger(LauncherHandler.class);
@@ -45,10 +46,11 @@ public class LauncherHandler implements InvocationHandler {
     }
 
     private void doScan(){
-        String resourcePath = packageName.replaceAll("\\.", File.separator);
-        String _path = resourcePath.equals(File.separator) ? "" : resourcePath;
+        //String resourcePath = packageName.replaceAll("\\.", Matcher.quoteReplacement("/"));
+        String resourcePath = packageName.replaceAll("\\.", "/");
+        String _path = resourcePath.equals("/") ? "" : resourcePath;
         URL packageUrl = ClassLoader.getSystemClassLoader().getResource(_path);
-//        URL packageUrl = LauncherHandler.class.getClassLoader().getResource(File.separator);
+//        URL packageUrl = LauncherHandler.class.getClassLoader().getResource("/");
         if(packageUrl == null){
 
             logger.warn("scan package [%s] is null", _path);
@@ -144,7 +146,8 @@ public class LauncherHandler implements InvocationHandler {
             }
             return names;
         }
-        String prefix = path.substring(rootPath.length()).replaceAll(File.separator, "\\.");
+        //String prefix = path.substring(rootPath.length()).replaceAll("/", "\\.");
+        String prefix = path.substring(rootPath.length()).replaceAll("/", "\\.");
         prefix = prefix.startsWith(".") ? prefix.substring(1) : prefix;
         File file = new File(path);
         File[] subFiles = file.listFiles();
@@ -162,10 +165,10 @@ public class LauncherHandler implements InvocationHandler {
                 names.add(sb.toString());
             }else if(oneFile.isDirectory()){
                 String dir = "";
-                if(path.endsWith(File.separator)){
+                if(path.endsWith("/")){
                     dir = path + oneName;
                 }else{
-                    dir = path+File.separator+oneName;
+                    dir = path+"/"+oneName;
                 }
                 scan(dir, names);
             }else{
@@ -181,7 +184,7 @@ public class LauncherHandler implements InvocationHandler {
         JarEntry entry = jarIn.getNextJarEntry();
         List<String> nameList = new ArrayList<>();
         while (null != entry) {
-            String name = entry.getName().replaceAll(File.separator, ".");
+            String name = entry.getName().replaceAll("/", ".");
             //logger.debug("one jar entry file name is %s", name);
             if (name.startsWith(splashedPackageName) && name.endsWith(".class")) {
                 // 6 ==> ".class".length
